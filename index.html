@@ -251,14 +251,24 @@
   /* KPI STRIP */
   .kpi-strip {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     border-bottom: 1px solid var(--border);
   }
+  .kpi-strip-row2 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, #0d1318 0%, #0a0d0f 100%);
+  }
   .kpi-card {
-    padding: 20px 24px;
+    padding: 18px 22px;
     border-right: 1px solid var(--border);
   }
   .kpi-card:last-child { border-right: none; }
+  .kpi-card.highlight {
+    background: rgba(255,107,26,0.04);
+    border-right: 1px solid var(--border);
+  }
   .kpi-label {
     font-size: 10px;
     letter-spacing: 0.1em;
@@ -437,8 +447,10 @@
   @media (max-width: 1100px) {
     .main { grid-template-columns: 300px 1fr; }
     .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+    .kpi-strip-row2 { grid-template-columns: repeat(2, 1fr); }
     .kpi-card:nth-child(2) { border-right: none; }
     .kpi-card:nth-child(3) { border-top: 1px solid var(--border); }
+    .kpi-card:nth-child(3n) { border-right: none; }
     .content-grid { grid-template-columns: 1fr; }
     .chart-section { border-right: none !important; }
   }
@@ -503,10 +515,11 @@
     }
 
     .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+    .kpi-strip-row2 { grid-template-columns: repeat(2, 1fr); }
     .kpi-card { padding: 14px 16px; }
-    .kpi-card:nth-child(2) { border-right: none; }
-    .kpi-card:nth-child(3) { border-top: 1px solid var(--border); }
     .kpi-value { font-size: 20px; }
+    #yearlyTable { min-width: 600px; font-size: 10px; }
+    #cashStartNote { font-size: 11px; }
 
     .scenario-strip {
       padding: 10px 12px;
@@ -567,7 +580,7 @@
     <h1>🌋 Kırşehir Jeotermal Sera — Fizibilite Simülatörü</h1>
     <p>Topraksız Salkım Domates · Senaryolar gerçek zamanlı güncelleniyor</p>
   </div>
-  <div class="header-badge">v1.0 · 2026</div>
+  <div class="header-badge">v1.5 · 2026</div>
 </div>
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 
@@ -848,6 +861,66 @@
       </div>
     </div>
 
+    <!-- IPARD & BAŞLANGIÇ -->
+    <div class="section">
+      <div class="section-title">IPARD / Hibe & Başlangıç</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">IPARD hibe oranı</div>
+          <span class="param-sublabel">M1 tedbiri: %50–75 (genç/kadın +%5–10)</span>
+        </div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="fin_ipard" value="65" step="5" min="0" max="75">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Maks. uygun harcama tavanı</div>
+          <span class="param-sublabel">M1 meyve/sebze: 1.250.000 € · M3: 3.000.000 €</span>
+        </div>
+        <span class="param-unit">€</span>
+        <input type="number" class="param-input wide" id="fin_ipardCapEur" value="1250000" step="50000">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">TL/€ kur (hibe hesabı için)</div>
+        </div>
+        <span class="param-unit">TL/€</span>
+        <input type="number" class="param-input" id="fin_eurRate" value="38" step="1">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">IPARD ödeme gecikmesi</div>
+          <span class="param-sublabel">Başvuru → nakit girişi (ay)</span>
+        </div>
+        <span class="param-unit">ay</span>
+        <input type="number" class="param-input" id="fin_ipardDelay" value="12" step="3">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">İnşaat / kurulum süresi</div>
+          <span class="param-sublabel">Kredi grace periyodu</span>
+        </div>
+        <span class="param-unit">ay</span>
+        <input type="number" class="param-input" id="fin_construction" value="12" step="3">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">İlk yıl devreye alma verimi</div>
+          <span class="param-sublabel">Tam kapasite %100'ün yüzdesi</span>
+        </div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="fin_rampup" value="60" step="5">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Ek işletme sermayesi tamponu</div>
+          <span class="param-sublabel">Kasa güvenlik payı</span>
+        </div>
+        <span class="param-unit">TL</span>
+        <input type="number" class="param-input wide" id="fin_workingCap" value="3000000">
+      </div>
+    </div>
+
   </div>
 
   <!-- RIGHT PANEL -->
@@ -862,22 +935,36 @@
       <button class="scenario-btn" onclick="setScenario('fullThermal')">🌋 %100 Termal</button>
     </div>
 
-    <!-- KPI STRIP -->
+    <!-- KPI STRIP - ROW 1: Kâr & Geri Dönüş -->
     <div class="kpi-strip">
       <div class="kpi-card">
-        <div class="kpi-label">Yıllık Net Kâr</div>
+        <div class="kpi-label">Yıllık Net Kâr (Kredi Öncesi)</div>
         <div class="kpi-value" id="kpi_netProfit">—</div>
         <div class="kpi-sub" id="kpi_netProfitUsd">— USD</div>
       </div>
+      <div class="kpi-card highlight">
+        <div class="kpi-label">🔑 Kredi Sonrası Serbest Nakit</div>
+        <div class="kpi-value" id="kpi_freeCash">—</div>
+        <div class="kpi-sub" id="kpi_debtService">Yıllık taksit: —</div>
+      </div>
       <div class="kpi-card">
-        <div class="kpi-label">Geri Dönüş Süresi</div>
+        <div class="kpi-label">Geri Dönüş (CAPEX)</div>
         <div class="kpi-value" id="kpi_payback">—</div>
-        <div class="kpi-sub" id="kpi_paybackSub">CAPEX'e göre</div>
+        <div class="kpi-sub" id="kpi_paybackSub">Özkaynak geri dönüşü: —</div>
+      </div>
+    </div>
+
+    <!-- KPI STRIP - ROW 2: Başlangıç & Finansman -->
+    <div class="kpi-strip-row2">
+      <div class="kpi-card highlight">
+        <div class="kpi-label">💰 Cebinde Olması Gereken</div>
+        <div class="kpi-value warn" id="kpi_cashNeeded">—</div>
+        <div class="kpi-sub" id="kpi_cashNeededSub">Özkaynak + işletme tamponu</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Kâr Marjı</div>
         <div class="kpi-value" id="kpi_margin">—</div>
-        <div class="kpi-sub" id="kpi_marginSub">Net gelir üzerinden</div>
+        <div class="kpi-sub" id="kpi_marginSub">Ciro: —</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Toplam CAPEX</div>
@@ -920,6 +1007,18 @@
         <div id="sensitivityTable" style="font-family:'IBM Plex Mono',monospace;font-size:11px;overflow-x:auto;"></div>
       </div>
 
+    </div>
+
+    <!-- YIL YIL NAKİT AKIŞI -->
+    <div style="padding:24px;border-top:1px solid var(--border);">
+      <div class="chart-title" style="margin-bottom:8px;">💰 Yıl Yıl Finansal Akış — "Cebimde Ne Kalıyor?"</div>
+      <div id="cashStartNote" style="margin-bottom:14px;padding:12px 16px;background:rgba(255,107,26,0.08);border:1px solid rgba(255,107,26,0.25);border-radius:8px;font-size:12px;color:var(--text2);font-family:'IBM Plex Mono',monospace;line-height:1.8;"></div>
+      <div style="overflow-x:auto;">
+        <table id="yearlyTable" style="width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:11px;min-width:700px;">
+          <thead id="yearlyHead"></thead>
+          <tbody id="yearlyBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
@@ -1013,6 +1112,13 @@ function calculate() {
   const finRate = g('fin_rate') / 100;
   const finLeverage = g('fin_leverage') / 100;
   const finTerm = g('fin_term');
+  const ipardRate = g('fin_ipard') / 100;
+  const ipardCapEur = g('fin_ipardCapEur') || 500000;
+  const eurRate = g('fin_eurRate') || 38;
+  const ipardDelay = g('fin_ipardDelay');
+  const constructionMonths = g('fin_construction');
+  const rampup = g('fin_rampup') / 100;
+  const workingCap = g('fin_workingCap');
 
   // ── PRODUCTION
   const totalKg = area * yieldKg;
@@ -1079,6 +1185,47 @@ function calculate() {
   const energySaving = coalOnly - cost_energy;
   const energySavingPct = coalOnly > 0 ? (energySaving / coalOnly) * 100 : 0;
 
+  // ── IPARD HİBE (tavan dahil)
+  // EUR tavan ile sınırlı: M1 meyve/sebze = 1.25M€
+  const capexInEur = cap_total / eurRate;
+  const eligibleEur = Math.min(capexInEur * 0.55, ipardCapEur);
+  const ipardTotal = eligibleEur * ipardRate * eurRate;
+  const ipardCapped = (capexInEur * 0.55) > ipardCapEur;
+
+  // ── BAŞLANGIÇ NAKİT İHTİYACI
+  // = Özkaynak (CAPEX - kredi) + inşaat dönemi OPEX tamponu + işletme sermayesi
+  // IPARD'ı inşaattan SONRA alacaksın (gecikme var), bu yüzden başlangıçta saymıyoruz
+  const constructionOpex = (opex_total / 12) * constructionMonths * 0.3; // inşaat döneminde %30 OPEX (personel, hazırlık)
+  const cashNeeded = equity + constructionOpex + workingCap;
+
+  // ── YILLIK NAKİT AKIŞI (10 yıl)
+  const years = [];
+  let cumulativeCash = 0;
+  let ipardReceived = false;
+  const ipardYear = Math.ceil(ipardDelay / 12);
+
+  for (let yr = 0; yr <= 10; yr++) {
+    if (yr === 0) {
+      // Kuruluş yılı: CAPEX çıkışı, kredi girişi, özkaynak yatırımı
+      const capexOut = -cap_total;
+      const creditIn = debt;
+      const equityIn = -equity; // çıkış olarak göster
+      cumulativeCash = -(equity + constructionOpex + workingCap);
+      years.push({ yr: 'Y0 Kuruluş', gelir: 0, opex: -(constructionOpex), kredi_giris: creditIn, ipard: 0, taksit: 0, net: creditIn - cap_total, kumulatif: cumulativeCash, note: 'CAPEX + inşaat' });
+    } else {
+      const yieldFactor = yr === 1 ? rampup : 1.0;
+      const yRev = rev_total * yieldFactor;
+      const yOpex = opex_total * yieldFactor;
+      const yNet = yRev - yOpex;
+      const yTaksit = yr <= finTerm ? -annualDebtService : 0;
+      const yIpard = (!ipardReceived && yr === ipardYear) ? ipardTotal : 0;
+      if (yr === ipardYear) ipardReceived = true;
+      const yFreeCash = yNet + yTaksit + yIpard;
+      cumulativeCash += yFreeCash;
+      years.push({ yr: `Y${yr}`, gelir: yRev, opex: -yOpex, kredi_giris: 0, ipard: yIpard, taksit: yTaksit, net: yNet, freeCash: yFreeCash, kumulatif: cumulativeCash, note: yr === 1 ? `%${Math.round(rampup*100)} kapasite` : (yr === ipardYear ? '← IPARD' : '') });
+    }
+  }
+
   return {
     thermalPct, area,
     totalKg, grade1Kg, grade2Kg,
@@ -1089,7 +1236,9 @@ function calculate() {
     cap_total, cap_perM2, capUSDperM2,
     debt, equity, annualDebtService, payback, paybackWithDebt,
     coalOnly, energySaving, energySavingPct,
-    capUSD
+    capUSD,
+    ipardTotal, ipardCapped, ipardCapEur, cashNeeded, workingCap, constructionOpex,
+    years, ipardYear, ipardRate
   };
 }
 
@@ -1111,12 +1260,24 @@ function render() {
   kpiProfit.className = 'kpi-value ' + (d.net_profit >= 0 ? 'positive' : 'negative');
   document.getElementById('kpi_netProfitUsd').textContent = fmtUSD(d.net_profit, d.capUSD);
 
+  // Kredi sonrası serbest nakit
+  const freeCash = d.net_profit - d.annualDebtService;
+  const kpiFree = document.getElementById('kpi_freeCash');
+  kpiFree.textContent = fmtTL(freeCash);
+  kpiFree.className = 'kpi-value ' + (freeCash >= 0 ? 'positive' : 'negative');
+  document.getElementById('kpi_debtService').textContent = `Yıllık taksit: ${fmtTL(d.annualDebtService)}`;
+
   const kpiPb = document.getElementById('kpi_payback');
   const pb = d.payback;
   kpiPb.textContent = isFinite(pb) ? pb.toFixed(1) + ' yıl' : '∞';
   kpiPb.className = 'kpi-value ' + (pb <= 5 ? 'positive' : pb <= 8 ? 'warn' : 'negative');
   document.getElementById('kpi_paybackSub').textContent = 
-    isFinite(d.paybackWithDebt) ? `Kredi sonrası özkaynak: ${d.paybackWithDebt.toFixed(1)} yıl` : 'Kredi sonrası özkaynak: ∞';
+    isFinite(d.paybackWithDebt) ? `Özkaynak geri dönüşü: ${d.paybackWithDebt.toFixed(1)} yıl` : 'Özkaynak geri dönüşü: ∞';
+
+  // Cebimde ne kadar olmalı
+  document.getElementById('kpi_cashNeeded').textContent = fmtTL(d.cashNeeded);
+  document.getElementById('kpi_cashNeededSub').textContent = 
+    `Özkaynak ${fmtTL(d.equity)} + tampon ${fmtTL(d.constructionOpex + d.workingCap)}`;
 
   const kpiMargin = document.getElementById('kpi_margin');
   kpiMargin.textContent = d.margin.toFixed(1) + '%';
@@ -1256,6 +1417,55 @@ function render() {
   stHtml += '</table></div>';
   stHtml += `<div style="margin-top:8px;font-size:9px;color:var(--text3)">Değerler: Yıllık Net Kâr (M TL). Turuncu = mevcut senaryo. Enerji karışımı mevcut slider değerine göre hesaplanmıştır.</div>`;
   document.getElementById('sensitivityTable').innerHTML = stHtml;
+
+  // ── YIL YIL NAKİT AKIŞI
+  const noteEl = document.getElementById('cashStartNote');
+  const ipardCapNote = d.ipardCapped 
+    ? ` <span style="color:#f5a623">⚠ Tavan uygulandı (${d.ipardCapEur.toLocaleString()} € üst limit)</span>` 
+    : ` <span style="color:#22c97a">✓ Tavana takılmadı</span>`;
+  noteEl.innerHTML = 
+    `<b style="color:var(--thermal)">💰 BAŞLANGIÇTA CEBİNDE OLMASI GEREKEN: ${fmtTL(d.cashNeeded)}</b><br>` +
+    `<span style="color:var(--text3)">= </span>Özkaynak <b>${fmtTL(d.equity)}</b>` +
+    ` + İnşaat dönemi hazırlık giderleri <b>${fmtTL(d.constructionOpex)}</b>` +
+    ` + İşletme tamponu <b>${fmtTL(d.workingCap)}</b><br>` +
+    `<span style="color:var(--text3)">IPARD hibesi ${fmtTL(d.ipardTotal)}${ipardCapNote} — <b>Y${d.ipardYear}'de</b> geliyor (başlangıçta sayma!)</span><br>` +
+    `<span style="color:var(--text3)">Kredi: ${fmtTL(d.debt)} · Toplam CAPEX: ${fmtTL(d.cap_total)}</span>`;
+
+  const cols = ['Yıl', 'Gelir', 'OPEX', 'Net Kâr', 'Taksit', 'IPARD', 'Serbest Nakit', 'Kümülatif', 'Not'];
+  const thead = document.getElementById('yearlyHead');
+  thead.innerHTML = `<tr>${cols.map(c => 
+    `<th style="padding:8px;text-align:right;color:var(--text3);font-size:10px;border-bottom:1px solid var(--border2);white-space:nowrap;font-weight:400;letter-spacing:0.08em;text-transform:uppercase">${c}</th>`
+  ).join('')}</tr>`;
+
+  const tbody2 = document.getElementById('yearlyBody');
+  tbody2.innerHTML = d.years.map((y, i) => {
+    const isY0 = i === 0;
+    const kumColor = y.kumulatif >= 0 ? '#22c97a' : '#f04040';
+    const freeColor = !isY0 && y.freeCash !== undefined ? (y.freeCash >= 0 ? '#22c97a' : '#f04040') : '#8a9ba8';
+    const rowBg = y.ipard > 0 ? 'rgba(34,201,122,0.05)' : (i % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent');
+    const td = (val, color='#8a9ba8', bold=false) => 
+      `<td style="padding:7px 8px;text-align:right;color:${color};${bold?'font-weight:600':''};">${val}</td>`;
+    if (isY0) {
+      return `<tr style="background:${rowBg};border-bottom:1px solid #141a1f">
+        ${td(y.yr, '#e8edf0', true)}
+        ${td('—')}${td('—')}${td('—')}${td('—')}${td('—')}
+        ${td('—')}
+        ${td(fmtTL(y.kumulatif), kumColor, true)}
+        ${td(y.note || '', '#556070')}
+      </tr>`;
+    }
+    return `<tr style="background:${rowBg};border-bottom:1px solid #141a1f">
+      ${td(y.yr, '#e8edf0', true)}
+      ${td(fmtTL(y.gelir), '#22c97a')}
+      ${td(fmtTL(y.opex), '#f04040')}
+      ${td(fmtTL(y.net), y.net >= 0 ? '#22c97a' : '#f04040')}
+      ${td(fmtTL(y.taksit), '#f04040')}
+      ${td(y.ipard > 0 ? fmtTL(y.ipard) : '—', '#22c97a')}
+      ${td(fmtTL(y.freeCash), freeColor, true)}
+      ${td(fmtTL(y.kumulatif), kumColor, true)}
+      ${td(y.note || '', '#556070')}
+    </tr>`;
+  }).join('');
 }
 
 // ─── SCENARIOS ───────────────────────────────────────────────────────────

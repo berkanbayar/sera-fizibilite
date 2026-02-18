@@ -403,12 +403,140 @@
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
-  /* RESPONSIVE for right panel */
-  @media (max-width: 1200px) {
-    .main { grid-template-columns: 320px 1fr; }
-    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
-    .content-grid { grid-template-columns: 1fr; }
+  /* HAMBURGER BUTTON */
+  .menu-btn {
+    display: none;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-size: 18px;
+    width: 38px;
+    height: 38px;
+    border-radius: 6px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s, border-color 0.2s;
   }
+  .menu-btn:hover { background: var(--border2); border-color: var(--thermal); }
+  .menu-btn.open { border-color: var(--thermal); color: var(--thermal); }
+
+  /* DRAWER OVERLAY */
+  .drawer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 200;
+    backdrop-filter: blur(2px);
+  }
+  .drawer-overlay.visible { display: block; }
+
+  /* RESPONSIVE — tablet */
+  @media (max-width: 1100px) {
+    .main { grid-template-columns: 300px 1fr; }
+    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+    .kpi-card:nth-child(2) { border-right: none; }
+    .kpi-card:nth-child(3) { border-top: 1px solid var(--border); }
+    .content-grid { grid-template-columns: 1fr; }
+    .chart-section { border-right: none !important; }
+  }
+
+  /* RESPONSIVE — mobile */
+  @media (max-width: 720px) {
+    .header {
+      padding: 14px 16px;
+      gap: 10px;
+    }
+    .header-left h1 { font-size: 12px; }
+    .header-left p { display: none; }
+    .header-badge { display: none; }
+    .menu-btn { display: flex; }
+
+    .main { 
+      display: block;
+      position: relative;
+    }
+
+    /* LEFT PANEL → Drawer */
+    .left-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 310px;
+      max-width: 90vw;
+      z-index: 300;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-right: 1px solid var(--border2);
+      overflow-y: auto;
+      padding-top: 60px; /* header height offset */
+    }
+    .left-panel.open {
+      transform: translateX(0);
+      box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+    }
+
+    /* Drawer close button */
+    .drawer-close {
+      display: flex;
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      color: var(--text2);
+      font-size: 16px;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .right-panel {
+      min-height: calc(100vh - 60px);
+    }
+
+    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+    .kpi-card { padding: 14px 16px; }
+    .kpi-card:nth-child(2) { border-right: none; }
+    .kpi-card:nth-child(3) { border-top: 1px solid var(--border); }
+    .kpi-value { font-size: 20px; }
+
+    .scenario-strip {
+      padding: 10px 12px;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      gap: 6px;
+    }
+    .scenario-strip > span { display: none; }
+
+    .content-grid { grid-template-columns: 1fr; }
+    .chart-section { 
+      border-right: none !important;
+      padding: 16px;
+    }
+    .chart-container { height: 200px; }
+
+    .param-input { width: 85px; font-size: 12px; }
+    .param-input.wide { width: 105px; }
+    .param-label { font-size: 11px; }
+    .section { padding: 16px; }
+
+    .energy-hero { padding: 18px 16px; }
+    .thermal-pct { font-size: 40px; }
+
+    /* Sensitivity table mobile scroll */
+    #sensitivityTable { overflow-x: auto; }
+  }
+
+  /* Drawer close button hidden on desktop */
+  .drawer-close { display: none; }
 
   .sep { 
     height: 1px; 
@@ -434,16 +562,19 @@
 <body>
 
 <div class="header">
+  <button class="menu-btn" id="menuBtn" onclick="toggleDrawer()" title="Parametreler">☰</button>
   <div class="header-left">
     <h1>🌋 Kırşehir Jeotermal Sera — Fizibilite Simülatörü</h1>
     <p>Topraksız Salkım Domates · Senaryolar gerçek zamanlı güncelleniyor</p>
   </div>
   <div class="header-badge">v1.0 · 2026</div>
 </div>
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 
 <div class="main">
   <!-- LEFT PANEL -->
-  <div class="left-panel">
+  <div class="left-panel" id="leftPanel">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
 
     <!-- ENERGY MIX HERO -->
     <div class="energy-hero">
@@ -794,6 +925,33 @@
 </div>
 
 <script>
+// ─── DRAWER (MOBILE) ─────────────────────────────────────────────────────
+function toggleDrawer() {
+  const panel = document.getElementById('leftPanel');
+  const overlay = document.getElementById('drawerOverlay');
+  const btn = document.getElementById('menuBtn');
+  const isOpen = panel.classList.contains('open');
+  if (isOpen) { closeDrawer(); } else {
+    panel.classList.add('open');
+    overlay.classList.add('visible');
+    btn.classList.add('open');
+    btn.textContent = '✕';
+  }
+}
+function closeDrawer() {
+  const panel = document.getElementById('leftPanel');
+  const overlay = document.getElementById('drawerOverlay');
+  const btn = document.getElementById('menuBtn');
+  panel.classList.remove('open');
+  overlay.classList.remove('visible');
+  btn.classList.remove('open');
+  btn.textContent = '☰';
+}
+// Close drawer on resize to desktop
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 720) closeDrawer();
+});
+
 // ─── CHART INSTANCES ──────────────────────────────────────────────────────
 let costChart = null, barChart = null;
 

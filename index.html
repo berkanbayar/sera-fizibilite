@@ -921,6 +921,35 @@
       </div>
     </div>
 
+    <!-- ENFLASYON -->
+    <div class="section">
+      <div class="section-title">Enflasyon Varsayımları</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Gelir enflasyonu (fiyat artışı)</div>
+          <span class="param-sublabel">Domates satış fiyatı yıllık büyüme</span>
+        </div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="inf_rev" value="30" step="5">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Girdi enflasyonu (maliyet artışı)</div>
+          <span class="param-sublabel">İşçilik, gübre, enerji, ambalaj</span>
+        </div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="inf_cost" value="35" step="5">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Reel baz yılı (deflasyon için)</div>
+          <span class="param-sublabel">Y1 = 100 endeks; reel karşılaştırma</span>
+        </div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="inf_deflator" value="32" step="5">
+      </div>
+    </div>
+
   </div>
 
   <!-- RIGHT PANEL -->
@@ -928,11 +957,13 @@
 
     <!-- SCENARIO BUTTONS -->
     <div class="scenario-strip">
-      <span style="font-size:11px;color:var(--text3);margin-right:4px;line-height:28px;">Hızlı Senaryo:</span>
+      <span style="font-size:11px;color:var(--text3);margin-right:4px;line-height:28px;">Senaryo:</span>
       <button class="scenario-btn" onclick="setScenario('pessimistic')">😟 Kötümser</button>
-      <button class="scenario-btn active" onclick="setScenario('base')">📊 Baz</button>
+      <button class="scenario-btn active" id="btn_base" onclick="setScenario('base')">📊 Baz</button>
       <button class="scenario-btn" onclick="setScenario('optimistic')">🚀 İyimser</button>
       <button class="scenario-btn" onclick="setScenario('fullThermal')">🌋 %100 Termal</button>
+      <button class="scenario-btn" id="btn_saved" onclick="loadSaved()" style="border-color:#4a6cf7;color:#4a6cf7;" title="Kayıtlı senaryonu yükle">💾 Kayıtlı</button>
+      <button onclick="saveScenario()" style="margin-left:6px;padding:5px 12px;background:#4a6cf7;border:none;border-radius:6px;color:#fff;font-size:11px;font-family:inherit;cursor:pointer;font-weight:600;letter-spacing:0.04em;" title="Mevcut ayarları kaydet">+ Kaydet</button>
     </div>
 
     <!-- KPI STRIP - ROW 1: Kâr & Geri Dönüş -->
@@ -1019,6 +1050,7 @@
           <tbody id="yearlyBody"></tbody>
         </table>
       </div>
+      <div id="realNote" style="margin-top:10px;font-size:11px;font-family:'IBM Plex Mono',monospace;"></div>
     </div>
   </div>
 </div>
@@ -1198,31 +1230,51 @@ function calculate() {
   const constructionOpex = (opex_total / 12) * constructionMonths * 0.3; // inşaat döneminde %30 OPEX (personel, hazırlık)
   const cashNeeded = equity + constructionOpex + workingCap;
 
-  // ── YILLIK NAKİT AKIŞI (10 yıl)
+  const infRev  = g('inf_rev')  / 100;   // gelir fiyat artışı
+  const infCost = g('inf_cost') / 100;   // maliyet artışı
+  const infDefl = g('inf_deflator') / 100; // reel deflasyon baz
+
+  // ── YILLIK NAKİT AKIŞI (10 yıl) — ENFLASYONİST
   const years = [];
   let cumulativeCash = 0;
+  let cumulativeReal = 0;
   let ipardReceived = false;
   const ipardYear = Math.ceil(ipardDelay / 12);
 
   for (let yr = 0; yr <= 10; yr++) {
     if (yr === 0) {
-      // Kuruluş yılı: CAPEX çıkışı, kredi girişi, özkaynak yatırımı
-      const capexOut = -cap_total;
-      const creditIn = debt;
-      const equityIn = -equity; // çıkış olarak göster
       cumulativeCash = -(equity + constructionOpex + workingCap);
-      years.push({ yr: 'Y0 Kuruluş', gelir: 0, opex: -(constructionOpex), kredi_giris: creditIn, ipard: 0, taksit: 0, net: creditIn - cap_total, kumulatif: cumulativeCash, note: 'CAPEX + inşaat' });
+      years.push({ yr: 'Y0', gelir: 0, opex: 0, net: 0, taksit: 0, ipard: 0,
+        freeCash: 0, kumulatif: cumulativeCash, realFreeCash: 0, kumulatifReal: cumulativeCash,
+        revFactor: 1, costFactor: 1, note: 'Kuruluş' });
     } else {
+      const revFactor  = Math.pow(1 + infRev,  yr - 1);
+      const costFactor = Math.pow(1 + infCost, yr - 1);
+      const deflFactor = Math.pow(1 + infDefl, yr - 1);
       const yieldFactor = yr === 1 ? rampup : 1.0;
-      const yRev = rev_total * yieldFactor;
-      const yOpex = opex_total * yieldFactor;
-      const yNet = yRev - yOpex;
+
+      const yRev  = rev_total  * yieldFactor * revFactor;
+      const yOpex = opex_total * yieldFactor * costFactor;
+      const yNet  = yRev - yOpex;
       const yTaksit = yr <= finTerm ? -annualDebtService : 0;
-      const yIpard = (!ipardReceived && yr === ipardYear) ? ipardTotal : 0;
+      const yIpard  = (!ipardReceived && yr === ipardYear) ? ipardTotal : 0;
       if (yr === ipardYear) ipardReceived = true;
+
       const yFreeCash = yNet + yTaksit + yIpard;
+      const yRealFree = yFreeCash / deflFactor;
       cumulativeCash += yFreeCash;
-      years.push({ yr: `Y${yr}`, gelir: yRev, opex: -yOpex, kredi_giris: 0, ipard: yIpard, taksit: yTaksit, net: yNet, freeCash: yFreeCash, kumulatif: cumulativeCash, note: yr === 1 ? `%${Math.round(rampup*100)} kapasite` : (yr === ipardYear ? '← IPARD' : '') });
+      cumulativeReal += yRealFree;
+
+      const notes = [];
+      if (yr === 1) notes.push(`%${Math.round(rampup*100)} kap.`);
+      if (yr === ipardYear) notes.push('← IPARD');
+      if (yNet < 0) notes.push('⚠ zarar');
+
+      years.push({ yr: `Y${yr}`, gelir: yRev, opex: -yOpex, net: yNet,
+        taksit: yTaksit, ipard: yIpard, freeCash: yFreeCash,
+        realFreeCash: yRealFree,
+        kumulatif: cumulativeCash, kumulatifReal: cumulativeReal,
+        revFactor, costFactor, deflFactor, note: notes.join(' ') });
     }
   }
 
@@ -1238,7 +1290,7 @@ function calculate() {
     coalOnly, energySaving, energySavingPct,
     capUSD,
     ipardTotal, ipardCapped, ipardCapEur, cashNeeded, workingCap, constructionOpex,
-    years, ipardYear, ipardRate
+    years, ipardYear, ipardRate, infRev, infCost
   };
 }
 
@@ -1419,53 +1471,61 @@ function render() {
   document.getElementById('sensitivityTable').innerHTML = stHtml;
 
   // ── YIL YIL NAKİT AKIŞI
-  const noteEl = document.getElementById('cashStartNote');
   const ipardCapNote = d.ipardCapped 
     ? ` <span style="color:#f5a623">⚠ Tavan uygulandı (${d.ipardCapEur.toLocaleString()} € üst limit)</span>` 
     : ` <span style="color:#22c97a">✓ Tavana takılmadı</span>`;
-  noteEl.innerHTML = 
+  document.getElementById('cashStartNote').innerHTML = 
     `<b style="color:var(--thermal)">💰 BAŞLANGIÇTA CEBİNDE OLMASI GEREKEN: ${fmtTL(d.cashNeeded)}</b><br>` +
     `<span style="color:var(--text3)">= </span>Özkaynak <b>${fmtTL(d.equity)}</b>` +
-    ` + İnşaat dönemi hazırlık giderleri <b>${fmtTL(d.constructionOpex)}</b>` +
+    ` + İnşaat dönemi hazırlık <b>${fmtTL(d.constructionOpex)}</b>` +
     ` + İşletme tamponu <b>${fmtTL(d.workingCap)}</b><br>` +
-    `<span style="color:var(--text3)">IPARD hibesi ${fmtTL(d.ipardTotal)}${ipardCapNote} — <b>Y${d.ipardYear}'de</b> geliyor (başlangıçta sayma!)</span><br>` +
+    `<span style="color:var(--text3)">IPARD ${fmtTL(d.ipardTotal)}${ipardCapNote} — Y${d.ipardYear}'de geliyor · ` +
+    `Enflasyon: gelir <b>+${(d.infRev*100).toFixed(0)}%</b>/yıl · maliyet <b>+${(d.infCost*100).toFixed(0)}%</b>/yıl</span><br>` +
     `<span style="color:var(--text3)">Kredi: ${fmtTL(d.debt)} · Toplam CAPEX: ${fmtTL(d.cap_total)}</span>`;
 
-  const cols = ['Yıl', 'Gelir', 'OPEX', 'Net Kâr', 'Taksit', 'IPARD', 'Serbest Nakit', 'Kümülatif', 'Not'];
+  const cols = ['Yıl','Gelir (nom.)','OPEX (nom.)','Net Kâr','Taksit','IPARD','Serbest Nakit','Reel S.Nakit*','Kümülatif (nom.)','Not'];
   const thead = document.getElementById('yearlyHead');
   thead.innerHTML = `<tr>${cols.map(c => 
-    `<th style="padding:8px;text-align:right;color:var(--text3);font-size:10px;border-bottom:1px solid var(--border2);white-space:nowrap;font-weight:400;letter-spacing:0.08em;text-transform:uppercase">${c}</th>`
+    `<th style="padding:8px 6px;text-align:right;color:var(--text3);font-size:10px;border-bottom:1px solid var(--border2);white-space:nowrap;font-weight:400;letter-spacing:0.06em;text-transform:uppercase">${c}</th>`
   ).join('')}</tr>`;
 
   const tbody2 = document.getElementById('yearlyBody');
   tbody2.innerHTML = d.years.map((y, i) => {
     const isY0 = i === 0;
-    const kumColor = y.kumulatif >= 0 ? '#22c97a' : '#f04040';
-    const freeColor = !isY0 && y.freeCash !== undefined ? (y.freeCash >= 0 ? '#22c97a' : '#f04040') : '#8a9ba8';
-    const rowBg = y.ipard > 0 ? 'rgba(34,201,122,0.05)' : (i % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent');
-    const td = (val, color='#8a9ba8', bold=false) => 
-      `<td style="padding:7px 8px;text-align:right;color:${color};${bold?'font-weight:600':''};">${val}</td>`;
+    const kumColor   = y.kumulatif >= 0 ? '#22c97a' : '#f04040';
+    const freeColor  = !isY0 ? (y.freeCash >= 0 ? '#22c97a' : '#f04040') : '#556070';
+    const realColor  = !isY0 ? (y.realFreeCash >= 0 ? '#7bc8f6' : '#f08080') : '#556070';
+    const rowBg = y.ipard > 0 ? 'rgba(34,201,122,0.06)' : (i % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent');
+    const inflNote = !isY0 && i > 1 ? `<span style="color:#556070;font-size:9px"> ×${y.revFactor.toFixed(2)}</span>` : '';
+    const td = (val, color='#8a9ba8', bold=false, extra='') => 
+      `<td style="padding:7px 6px;text-align:right;color:${color};${bold?'font-weight:600':''};">${val}${extra}</td>`;
+
     if (isY0) {
       return `<tr style="background:${rowBg};border-bottom:1px solid #141a1f">
-        ${td(y.yr, '#e8edf0', true)}
-        ${td('—')}${td('—')}${td('—')}${td('—')}${td('—')}
-        ${td('—')}
+        ${td(y.yr,'#e8edf0',true)} ${td('—')} ${td('—')} ${td('—')} ${td('—')} ${td('—')}
+        ${td('—')} ${td('—')}
         ${td(fmtTL(y.kumulatif), kumColor, true)}
-        ${td(y.note || '', '#556070')}
+        ${td(y.note||'','#556070')}
       </tr>`;
     }
     return `<tr style="background:${rowBg};border-bottom:1px solid #141a1f">
-      ${td(y.yr, '#e8edf0', true)}
-      ${td(fmtTL(y.gelir), '#22c97a')}
-      ${td(fmtTL(y.opex), '#f04040')}
-      ${td(fmtTL(y.net), y.net >= 0 ? '#22c97a' : '#f04040')}
-      ${td(fmtTL(y.taksit), '#f04040')}
-      ${td(y.ipard > 0 ? fmtTL(y.ipard) : '—', '#22c97a')}
+      ${td(y.yr,'#e8edf0',true)}
+      ${td(fmtTL(y.gelir),'#22c97a',false,inflNote)}
+      ${td(fmtTL(y.opex),'#f04040')}
+      ${td(fmtTL(y.net), y.net>=0?'#22c97a':'#f04040')}
+      ${td(fmtTL(y.taksit),'#f04040')}
+      ${td(y.ipard>0?fmtTL(y.ipard):'—','#22c97a')}
       ${td(fmtTL(y.freeCash), freeColor, true)}
+      ${td(fmtTL(y.realFreeCash), realColor)}
       ${td(fmtTL(y.kumulatif), kumColor, true)}
-      ${td(y.note || '', '#556070')}
+      ${td(y.note||'','#556070')}
     </tr>`;
   }).join('');
+
+  // ── REEL NOT
+  const realNote = document.getElementById('realNote');
+  if (realNote) realNote.innerHTML = 
+    `<span style="color:#7bc8f6">* Reel Serbest Nakit</span><span style="color:var(--text3)"> = Nominal / (1 + %${(g('inf_deflator'))})<sup>yıl</sup> — Y1 satın alma gücü cinsinden</span>`;
 }
 
 // ─── SCENARIOS ───────────────────────────────────────────────────────────
@@ -1474,10 +1534,10 @@ function setScenario(s) {
   event.target.classList.add('active');
 
   const scenarios = {
-    pessimistic: { p_yield: 28, r_tomatoPrice: 32, thermalSlider: 20, fin_rate: 22 },
-    base:        { p_yield: 38, r_tomatoPrice: 45, thermalSlider: 20, fin_rate: 18.5 },
-    optimistic:  { p_yield: 48, r_tomatoPrice: 58, thermalSlider: 60, fin_rate: 18.5 },
-    fullThermal: { p_yield: 38, r_tomatoPrice: 45, thermalSlider: 100, fin_rate: 18.5 }
+    pessimistic: { p_yield: 28, r_tomatoPrice: 32, thermalSlider: 20, fin_rate: 22, inf_rev: 25, inf_cost: 38 },
+    base:        { p_yield: 38, r_tomatoPrice: 45, thermalSlider: 20, fin_rate: 18.5, inf_rev: 30, inf_cost: 35 },
+    optimistic:  { p_yield: 48, r_tomatoPrice: 58, thermalSlider: 60, fin_rate: 18.5, inf_rev: 35, inf_cost: 30 },
+    fullThermal: { p_yield: 38, r_tomatoPrice: 45, thermalSlider: 100, fin_rate: 18.5, inf_rev: 30, inf_cost: 35 }
   };
 
   const sc = scenarios[s];
@@ -1487,6 +1547,62 @@ function setScenario(s) {
   });
   render();
 }
+
+// ─── LOCALSTORAGE: KAYDET / YÜKLE ─────────────────────────────────────────
+const LS_KEY = 'sera_fizibilite_v15';
+
+function getAllInputValues() {
+  const data = {};
+  document.querySelectorAll('input[id]').forEach(el => {
+    data[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  data._savedAt = new Date().toLocaleString('tr-TR');
+  return data;
+}
+
+function saveScenario() {
+  const data = getAllInputValues();
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+
+  // Buton feedback
+  const btn = event.target;
+  const orig = btn.textContent;
+  btn.textContent = '✓ Kaydedildi';
+  btn.style.background = '#22c97a';
+  setTimeout(() => { btn.textContent = orig; btn.style.background = '#4a6cf7'; }, 1500);
+
+  // Kayıtlı butonunu aktif et
+  updateSavedBtnLabel(data._savedAt);
+}
+
+function loadSaved() {
+  const raw = localStorage.getItem(LS_KEY);
+  if (!raw) { alert('Henüz kayıtlı senaryo yok. Önce "+ Kaydet" butonuna bas.'); return; }
+  const data = JSON.parse(raw);
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn_saved').classList.add('active');
+  Object.entries(data).forEach(([id, val]) => {
+    if (id === '_savedAt') return;
+    const el = document.getElementById(id);
+    if (el) el.type === 'checkbox' ? el.checked = val : el.value = val;
+  });
+  render();
+}
+
+function updateSavedBtnLabel(savedAt) {
+  const btn = document.getElementById('btn_saved');
+  if (savedAt) btn.title = `Son kayıt: ${savedAt}`;
+  btn.style.borderColor = '#22c97a';
+  btn.style.color = '#22c97a';
+}
+
+// Sayfa yüklendiğinde kayıtlı senaryo varsa label'ı güncelle
+(function checkExistingSave() {
+  const raw = localStorage.getItem(LS_KEY);
+  if (raw) {
+    try { updateSavedBtnLabel(JSON.parse(raw)._savedAt); } catch(e) {}
+  }
+})();
 
 // ─── EVENT LISTENERS ─────────────────────────────────────────────────────
 document.querySelectorAll('input').forEach(el => {

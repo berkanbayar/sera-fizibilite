@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kırşehir Jeotermal Sera — Fizibilite Simülatörü</title>
+<title>Ankara Elmadağ — Topraksız Tarım Serası Fizibilite Simülatörü</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap');
@@ -729,10 +729,10 @@
 <div class="header">
   <button class="menu-btn" id="menuBtn" onclick="toggleDrawer()" title="Parametreler">☰</button>
   <div class="header-left">
-    <h1>🌋 Kırşehir Jeotermal Sera — Fizibilite Simülatörü</h1>
-    <p>Topraksız Salkım Domates · Senaryolar gerçek zamanlı güncelleniyor</p>
+    <h1>🍅 Ankara Elmadağ — Topraksız Tarım Serası Fizibilite Simülatörü</h1>
+    <p>Camlı Sera · Topraksız Salkım Domates · Katı Yakıt Isıtma · Senaryolar gerçek zamanlı güncelleniyor</p>
   </div>
-  <div class="header-badge">v2.0 · 2026</div>
+  <div class="header-badge">v3.0 · 2026</div>
 </div>
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 
@@ -741,27 +741,26 @@
   <div class="left-panel" id="leftPanel">
     <button class="drawer-close" onclick="closeDrawer()">✕</button>
 
-    <!-- ENERGY MIX HERO -->
+    <!-- ISITMA ÖZETİ HERO (KATI YAKIT) -->
     <div class="energy-hero">
-      <div class="energy-hero-title">⚡ Isı Enerjisi Karışımı</div>
+      <div class="energy-hero-title">🔥 Katı Yakıt (Kömür) Isıtma</div>
       <div class="energy-pct-display">
-        <div class="thermal-pct" id="thermalPctDisplay">20</div>
-        <div class="thermal-unit">%</div>
+        <div class="thermal-pct edc-coal" id="coalTonDisplay" style="color:var(--coal2)">—</div>
+        <div class="thermal-unit">ton/yıl</div>
       </div>
-      <div class="coal-pct-text" id="coalPctText">Kömür: %80</div>
-      <div class="energy-bar">
-        <div class="energy-bar-fill" id="energyBarFill" style="width:20%"></div>
-      </div>
-      <input type="range" class="slider" id="thermalSlider" min="0" max="100" value="20" step="5">
+      <div class="coal-pct-text" id="coalRateText">— TL/kWh ısı</div>
       <div class="energy-detail">
         <div class="energy-detail-card">
-          <div class="edc-label">Termal Maliyet</div>
-          <div class="edc-value edc-thermal" id="thermalCostDisplay">—</div>
-        </div>
-        <div class="energy-detail-card">
-          <div class="edc-label">Kömür Maliyet</div>
+          <div class="edc-label">Yıllık Kömür Gideri</div>
           <div class="edc-value edc-coal" id="coalCostDisplay">—</div>
         </div>
+        <div class="energy-detail-card">
+          <div class="edc-label">Isı Gideri / m²</div>
+          <div class="edc-value edc-thermal" id="heatPerM2Display">—</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:9.5px;color:var(--text3);font-family:'IBM Plex Mono',monospace;line-height:1.6;">
+        Gelecek opsiyonlar (doğalgaz · Baştaş atık ısı 2,5 km · 900 m sondaj termal) modele sonradan eklenecek.
       </div>
     </div>
 
@@ -778,10 +777,10 @@
       <div class="param-row">
         <div>
           <div class="param-label">Verim</div>
-          <span class="param-sublabel">Beklenen: 38 kg/m²</span>
+          <span class="param-sublabel">Camlı sera, kömür ısıtmalı: ~50 kg/m²</span>
         </div>
         <span class="param-unit">kg/m²/yıl</span>
-        <input type="number" class="param-input" id="p_yield" value="38" step="1">
+        <input type="number" class="param-input" id="p_yield" value="50" step="1">
       </div>
       <div class="param-row">
         <div>
@@ -822,37 +821,52 @@
 
     <!-- GİDER KALEMLERİ -->
     <div class="section">
-      <div class="section-title">Gider Kalemleri — Enerji</div>
+      <div class="section-title">Gider Kalemleri — Isıtma (Katı Yakıt)</div>
       <div class="param-row">
         <div>
-          <div class="param-label">Yıllık ısı enerjisi ihtiyacı <span class="tag tag-fixed">SABİT</span></div>
-          <span class="param-sublabel">30.000 m² için 9,9 GWh/yıl; orantılı</span>
+          <div class="param-label">Yıllık ısı enerjisi ihtiyacı</div>
+          <span class="param-sublabel">Elmadağ (~1.100 m) soğuk iklim; ~500 kWh/m²</span>
         </div>
         <span class="param-unit">GWh/yıl</span>
-        <input type="number" class="param-input" id="e_heatGwh" value="6.6" step="0.1">
+        <input type="number" class="param-input" id="e_heatGwh" value="10" step="0.5">
       </div>
       <div class="param-row">
         <div>
-          <div class="param-label">Termal işletme maliyeti <span class="tag tag-thermal">JEOTERMAL</span></div>
-          <span class="param-sublabel">Pompa, bakım, reenjeksiyon</span>
+          <div class="param-label">Kömür fiyatı</div>
+          <span class="param-sublabel">Linyit, teslim; güncel ~8.500 TL/ton</span>
         </div>
-        <span class="param-unit">TL/kWh</span>
-        <input type="number" class="param-input" id="e_thermalRate" value="0.35" step="0.05">
+        <span class="param-unit">TL/ton</span>
+        <input type="number" class="param-input wide" id="e_coalPriceTon" value="8500" step="250">
       </div>
       <div class="param-row">
         <div>
-          <div class="param-label">Kömür maliyeti</div>
-          <span class="param-sublabel">Kazan verimi %75 dahil</span>
+          <div class="param-label">Kömür alt ısıl değeri</div>
+          <span class="param-sublabel">Linyit ~6.000 kcal/kg</span>
         </div>
-        <span class="param-unit">TL/kWh</span>
-        <input type="number" class="param-input" id="e_coalRate" value="3.20" step="0.10">
+        <span class="param-unit">kcal/kg</span>
+        <input type="number" class="param-input" id="e_coalCalorie" value="6000" step="250">
       </div>
       <div class="param-row">
         <div>
-          <div class="param-label">Elektrik (pompalar, fan, soÄŸuk oda)</div>
+          <div class="param-label">Kazan verimi</div>
+          <span class="param-sublabel">Faydalı ısı / yakıt enerjisi</span>
+        </div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="e_coalEff" value="75" step="5" min="30" max="95">
+      </div>
+      <div class="param-row" style="background:rgba(113,128,150,0.08);border-radius:6px;padding:8px;">
+        <div>
+          <div class="param-label" style="color:var(--coal2);">⇒ Türetilen kömür birim maliyeti</div>
+          <span class="param-sublabel" id="coalDerivedNote" style="color:var(--coal2);">—</span>
+        </div>
+        <span class="param-unit" style="color:var(--coal2);font-weight:700;font-size:14px;" id="coalRateDisplay">—</span>
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Elektrik (pompalar, fan, soğuk oda)</div>
         </div>
         <span class="param-unit">TL/yıl</span>
-        <input type="number" class="param-input wide" id="e_electric" value="1800000">
+        <input type="number" class="param-input wide" id="e_electric" value="2500000">
       </div>
     </div>
 
@@ -893,9 +907,9 @@
         <input type="number" class="param-input" id="hr_workers" value="18" step="1">
       </div>
       <div class="param-row">
-        <div><div class="param-label">İşçi aylık brüt</div></div>
+        <div><div class="param-label">İşçi aylık brüt</div><span class="param-sublabel">2026 asgari ücret bandı</span></div>
         <span class="param-unit">TL/ay</span>
-        <input type="number" class="param-input wide" id="hr_workerSalary" value="28000">
+        <input type="number" class="param-input wide" id="hr_workerSalary" value="32000">
       </div>
       <div class="param-row">
         <div><div class="param-label">Teknik/yönetici (kişi)</div></div>
@@ -927,7 +941,7 @@
         <input type="number" class="param-input wide" id="c_maintenance" value="800000">
       </div>
       <div class="param-row">
-        <div><div class="param-label">SoÄŸuk zincir & nakliye</div></div>
+        <div><div class="param-label">Soğuk zincir & nakliye</div></div>
         <span class="param-unit">TL/yıl</span>
         <input type="number" class="param-input wide" id="c_logistics" value="900000">
       </div>
@@ -942,20 +956,16 @@
       <div class="section-title">CAPEX & Arazi</div>
       <div class="param-row">
         <div>
-          <div class="param-label">Sera yapı + örtü (plastik)</div>
+          <div class="param-label">Sera yapı + örtü (camlı)</div>
+          <span class="param-sublabel">Venlo tipi camlı; piyasa 110–160 USD/m²</span>
         </div>
         <span class="param-unit">USD/m²</span>
-        <input type="number" class="param-input" id="cap_greenhouse" value="65" step="5">
+        <input type="number" class="param-input" id="cap_greenhouse" value="110" step="5">
       </div>
       <div class="param-row">
-        <div><div class="param-label">Jeotermal entegrasyon</div><span class="param-sublabel">Eşanjör, ara devre, borular</span></div>
-        <span class="param-unit">USD/m²</span>
-        <input type="number" class="param-input" id="cap_geo" value="18" step="1">
-      </div>
-      <div class="param-row">
-        <div><div class="param-label">Yedek kömür kazanı</div></div>
+        <div><div class="param-label">Kömür kazan dairesi + sistem</div><span class="param-sublabel">Kazan, stoker, silo, baca, dağıtım</span></div>
         <span class="param-unit">TL</span>
-        <input type="number" class="param-input wide" id="cap_boiler" value="3500000">
+        <input type="number" class="param-input wide" id="cap_boiler" value="18000000">
       </div>
       <div class="param-row">
         <div><div class="param-label">Topraksız sistem + otomasyon</div></div>
@@ -965,29 +975,29 @@
       <div class="param-row">
         <div><div class="param-label">Paketleme binası + soğuk oda</div></div>
         <span class="param-unit">TL</span>
-        <input type="number" class="param-input wide" id="cap_packing" value="8000000">
+        <input type="number" class="param-input wide" id="cap_packing" value="12000000">
       </div>
       <div class="param-row">
         <div><div class="param-label">USD/TL kuru</div></div>
         <span class="param-unit">TL/USD</span>
-        <input type="number" class="param-input" id="cap_usdtl" value="39.5" step="0.5">
+        <input type="number" class="param-input" id="cap_usdtl" value="46" step="0.5">
       </div>
       <div class="sep"></div>
       <div class="param-row">
         <div>
-          <div class="param-label">Arazi tahsis bedeli (50 yıl)</div>
-          <span class="param-sublabel">100 dönüm için ~ 5M TL</span>
+          <div class="param-label">Arazi bedeli</div>
+          <span class="param-sublabel">Elmadağ; 20 dönüm satın/tahsis</span>
         </div>
         <span class="param-unit">TL</span>
-        <input type="number" class="param-input wide" id="cap_landTotal" value="5000000">
+        <input type="number" class="param-input wide" id="cap_landTotal" value="4000000">
       </div>
       <div class="param-row">
         <div><div class="param-label">Arazi alanı</div></div>
         <span class="param-unit">dönüm</span>
-        <input type="number" class="param-input" id="cap_landDekar" value="100" step="10">
+        <input type="number" class="param-input" id="cap_landDekar" value="20" step="1">
       </div>
       <div class="param-row">
-        <div><div class="param-label">Ödeme periyodu</div><span class="param-sublabel">Her N yılda bir kira ödemesi</span></div>
+        <div><div class="param-label">Amortisman periyodu</div><span class="param-sublabel">Arazi bedeli kaç yıla yayılıyor</span></div>
         <span class="param-unit">yıl</span>
         <input type="number" class="param-input" id="cap_landPeriod" value="10" step="1">
       </div>
@@ -996,13 +1006,62 @@
         <span class="param-unit">%</span>
         <input type="number" class="param-input" id="cap_contingency" value="10" step="1">
       </div>
+    </div>
+
+    <!-- TARIM BAKANLIĞI HİBESİ -->
+    <div class="section">
+      <div class="section-title">Tarım Bakanlığı Hibesi (5 dönüm)</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Hibeye konu alan</div>
+          <span class="param-sublabel">5+15 modeli: 5 dönüm bakanlığa sunulur</span>
+        </div>
+        <span class="param-unit">dönüm</span>
+        <input type="number" class="param-input" id="grant_area" value="5" step="1">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Hibe oranı</div>
+          <span class="param-sublabel">Hibeye konu CAPEX'in karşılanan %'si</span>
+        </div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="grant_rate" value="60" step="5" min="0" max="100">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Hakediş gecikmesi</div>
+          <span class="param-sublabel">Önce harca → hakediş → sonra tahsil</span>
+        </div>
+        <span class="param-unit">ay</span>
+        <input type="number" class="param-input" id="grant_lag" value="8" step="1">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Köprü finansman faizi</div>
+          <span class="param-sublabel">Hibe tahsil edilene dek köprü maliyeti (yıllık)</span>
+        </div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="grant_bridgeRate" value="45" step="5">
+      </div>
+      <div class="param-row" style="background:rgba(34,201,122,0.08);border-radius:6px;padding:8px;">
+        <div>
+          <div class="param-label" style="color:#22c97a;">⇒ Tahmini hibe tutarı</div>
+          <span class="param-sublabel" id="grant_amountNote" style="color:#22c97a;">—</span>
+        </div>
+        <span class="param-unit" style="color:#22c97a;font-weight:700;font-size:14px;" id="grant_amountDisplay">—</span>
+      </div>
+    </div>
+
+    <!-- ZİRAAT BANKASI KREDİSİ -->
+    <div class="section">
+      <div class="section-title">Ziraat Bankası Kredisi</div>
       <div class="param-row">
         <div><div class="param-label">Efektif faiz oranı</div><span class="param-sublabel">Ziraat indirimleri uygulanmış</span></div>
         <span class="param-unit">%</span>
         <span class="param-input" id="fin_rate_display" style="text-align:center;font-weight:600;color:#22c97a;">—</span>
       </div>
       <div class="param-row">
-        <div><div class="param-label">Kredi oranı (CAPEX'in %'si)</div></div>
+        <div><div class="param-label">Kredi oranı (net CAPEX'in %'si)</div><span class="param-sublabel">Hibe sonrası kalan yatırımın kredilenen payı</span></div>
         <span class="param-unit">%</span>
         <input type="number" class="param-input" id="fin_leverage" value="65" step="5" min="0" max="100">
       </div>
@@ -1015,14 +1074,14 @@
 
     <!-- YATIRIM TEŞVİK BELGESİ -->
     <div class="section">
-      <div class="section-title">Yatırım Teşvik Belgesi (YTB)</div>
+      <div class="section-title">Yatırım Teşvik Belgesi (opsiyonel — şimdilik kapalı)</div>
       <div class="param-row">
         <div>
           <div class="param-label">KDV İstisnası</div>
           <span class="param-sublabel">Yatırım harcamaları KDV'den muaf</span>
         </div>
         <span class="param-unit">✓</span>
-        <input type="checkbox" id="ytb_kdv" checked style="width:20px;height:20px;">
+        <input type="checkbox" id="ytb_kdv" style="width:20px;height:20px;">
       </div>
       <div class="param-row">
         <div>
@@ -1030,7 +1089,7 @@
           <span class="param-sublabel">İşveren SGK primi indirimi</span>
         </div>
         <span class="param-unit">✓</span>
-        <input type="checkbox" id="ytb_sgk" checked style="width:20px;height:20px;">
+        <input type="checkbox" id="ytb_sgk" style="width:20px;height:20px;">
       </div>
       <div class="param-row">
         <div><div class="param-label">SGK destek oranı</div></div>
@@ -1046,7 +1105,7 @@
 
     <!-- ZİRAAT BANKASI KREDİ -->
     <div class="section">
-      <div class="section-title">Ziraat Bankası Kredi İndirimleri</div>
+      <div class="section-title">Ziraat Faiz İndirimleri</div>
       <div class="param-row">
         <div>
           <div class="param-label">Piyasa faiz oranı (baz)</div>
@@ -1058,18 +1117,10 @@
       <div class="param-row">
         <div>
           <div class="param-label">Hazine desteği (baz indirim)</div>
-          <span class="param-sublabel">Standart tarımsal kredi indirimi</span>
+          <span class="param-sublabel">Örtü altı / modern sera yatırım indirimi</span>
         </div>
         <span class="param-unit">%</span>
         <input type="number" class="param-input" id="zb_baseDisc" value="50" step="5">
-      </div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">Jeotermal / yenilenebilir enerji</div>
-          <span class="param-sublabel">Ek indirim bonusu</span>
-        </div>
-        <span class="param-unit">%</span>
-        <input type="number" class="param-input" id="zb_geoDisc" value="5" step="1">
       </div>
       <div class="param-row">
         <div>
@@ -1181,7 +1232,7 @@
       <button class="scenario-btn" onclick="setScenario('pessimistic')">😟 Kötümser</button>
       <button class="scenario-btn active" id="btn_base" onclick="setScenario('base')">📊 Baz</button>
       <button class="scenario-btn" onclick="setScenario('optimistic')">🚀 İyimser</button>
-      <button class="scenario-btn" onclick="setScenario('fullThermal')">🌋 %100 Termal</button>
+      <button class="scenario-btn" onclick="setScenario('noGrant')">🚫 Hibe Onaysız</button>
       <button class="scenario-btn" id="btn_saved" onclick="loadSaved()" style="border-color:#4a6cf7;color:#4a6cf7;" title="Kayıtlı senaryonu yükle">💾 Kayıtlı</button>
       <button onclick="saveScenario()" style="margin-left:6px;padding:7px 14px;background:#4a6cf7;border:none;border-radius:6px;color:#fff;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;font-weight:600;letter-spacing:0.04em;transition:all 0.2s;box-shadow:0 2px 8px rgba(74,108,247,0.2);" onmouseover="this.style.background='#5b7bff';this.style.boxShadow='0 4px 12px rgba(74,108,247,0.35)'" onmouseout="this.style.background='#4a6cf7';this.style.boxShadow='0 2px 8px rgba(74,108,247,0.2)'" title="Mevcut ayarları kaydet">+ Kaydet</button>
     </div>
@@ -1321,7 +1372,6 @@ const g = id => parseFloat(document.getElementById(id).value) || 0;
 
 // ─── CALCULATE ───────────────────────────────────────────────────────────
 function calculate() {
-  const thermalPct = g('thermalSlider') / 100;
   const area = g('p_area');
   const yieldKg = g('p_yield');
   const wastePct = g('p_waste') / 100;
@@ -1329,10 +1379,17 @@ function calculate() {
   const tomatoPrice = g('r_tomatoPrice');
   const grade2Price = g('r_grade2Price');
 
+  // ── ISITMA (KATI YAKIT / KÖMÜR)
   const heatGwh = g('e_heatGwh');
   const heatKwh = heatGwh * 1e6;
-  const thermalRate = g('e_thermalRate');
-  const coalRate = g('e_coalRate');
+  const coalPriceTon = g('e_coalPriceTon');     // TL/ton
+  const coalCalorie  = g('e_coalCalorie');      // kcal/kg (alt ısıl değer)
+  const coalEff      = g('e_coalEff') / 100;    // kazan verimi
+  // 1 kg kömürden faydalı ısı = calorie*verim kcal = (.../860) kWh
+  const usefulKwhPerKg = (coalCalorie * coalEff) / 860;
+  const coalRate = usefulKwhPerKg > 0 ? (coalPriceTon / 1000) / usefulKwhPerKg : 0; // TL/kWh ısı
+  const coalKg   = usefulKwhPerKg > 0 ? heatKwh / usefulKwhPerKg : 0;
+  const coalTon  = coalKg / 1000;
   const electric = g('e_electric');
 
   const fertPerM2 = g('c_fertilizer');
@@ -1352,7 +1409,6 @@ function calculate() {
   const burden = g('hr_burden') / 100;
 
   const capGH = g('cap_greenhouse');
-  const capGeo = g('cap_geo');
   const capHydro = g('cap_hydro');
   const capBoiler = g('cap_boiler');
   const capPacking = g('cap_packing');
@@ -1361,23 +1417,29 @@ function calculate() {
   const capLandDekar = g('cap_landDekar');
   const capLandPeriod = g('cap_landPeriod');
   const contingency = g('cap_contingency') / 100;
-  // finRate → Ziraat efektif (aşağıda)
+
+  // — TARIM BAKANLIĞI HİBESİ
+  const grantArea = g('grant_area');             // hibeye konu alan (dönüm)
+  const grantRate = g('grant_rate') / 100;       // hibe oranı
+  const grantLag  = g('grant_lag');              // hakediş gecikmesi (ay)
+  const bridgeRate = g('grant_bridgeRate') / 100; // köprü finansman yıllık faizi
+
+  // — ZİRAAT KREDİSİ
   const finLeverage = g('fin_leverage') / 100;
   const finTerm = g('fin_term');
-  // — YTB TEŞVİK
+  // — YTB TEŞVİK (opsiyonel, default kapalı)
   const ytbKdv = document.getElementById('ytb_kdv').checked;
   const ytbSgk = document.getElementById('ytb_sgk').checked;
   const ytbSgkRate = g('ytb_sgkRate') / 100;
   const ytbSgkYears = g('ytb_sgkYears');
 
-  // — ZİRAAT BANKASI
+  // — ZİRAAT FAİZ İNDİRİMLERİ
   const zbBase = g('zb_baseRate') / 100;
   const zbBaseDisc = g('zb_baseDisc') / 100;
-  const zbGeo = g('zb_geoDisc') / 100;
   const zbYoung = g('zb_youngDisc') / 100;
   const zbPlan = g('zb_planDisc') / 100;
   const zbContract = g('zb_contractDisc') / 100;
-  const zbTotalDisc = Math.min(zbBaseDisc + zbGeo + zbYoung + zbPlan + zbContract, 1.0);
+  const zbTotalDisc = Math.min(zbBaseDisc + zbYoung + zbPlan + zbContract, 1.0);
   const zbEffective = zbBase * (1 - zbTotalDisc);
 
   const finGrace = g('fin_grace');
@@ -1395,12 +1457,9 @@ function calculate() {
   const rev_grade2 = grade2Kg * grade2Price * (1 - commission);
   const rev_total = rev_grade1 + rev_grade2;
 
-  // ── ENERGY
-  const thermalKwh = heatKwh * thermalPct;
-  const coalKwh = heatKwh * (1 - thermalPct);
-  const cost_thermal = thermalKwh * thermalRate;
-  const cost_coal = coalKwh * coalRate;
-  const cost_energy = cost_thermal + cost_coal + electric;
+  // ── ENERGY (sadece katı yakıt + elektrik)
+  const cost_coal = heatKwh * coalRate;
+  const cost_energy = cost_coal + electric;
 
   // ── INPUTS
   const cost_inputs = area * (fertPerM2 + seedPerM2 + substratePerM2 + pesticidePerM2);
@@ -1425,47 +1484,53 @@ function calculate() {
   const margin = rev_total > 0 ? (net_profit / rev_total) * 100 : 0;
 
   // ── CAPEX
-  const usdCosts = (capGH + capGeo + capHydro) * area;
+  const usdCosts = (capGH + capHydro) * area;
   const cap_base = usdCosts * capUSD + capBoiler + capPacking + capLand;
   const cap_total = cap_base * (1 + contingency);
   const cap_perM2 = cap_total / area;
   const capUSDperM2 = cap_perM2 / capUSD;
 
-  // ── KDV İSTİSNASI
+  // ── KDV İSTİSNASI (opsiyonel, default kapalı)
   const kdvSaving = ytbKdv ? cap_total * 0.20 : 0;
-  const effectiveCapex = cap_total - kdvSaving;
+  const capexAfterKdv = cap_total - kdvSaving;
 
-  // ── SGK PRİM DESTEĞİ
+  // ── TARIM BAKANLIĞI HİBESİ (5 dönüm, %60)
+  // Sera alanı dönüm cinsinden; hibeye konu alan oranı kadar CAPEX hibeye girer
+  const areaDekar = area / 1000;
+  const grantShare = areaDekar > 0 ? Math.min(grantArea / areaDekar, 1) : 0;
+  const grantBase = capexAfterKdv * grantShare;   // hibeye konu CAPEX
+  const grantAmount = grantBase * grantRate;       // bakanlıktan gelecek hibe (gecikmeli)
+  // Köprü maliyeti: hibe tahsil edilene dek tutar finanse edilir
+  const bridgeCost = grantAmount * bridgeRate * (grantLag / 12);
+  // Net yatırım (hibe sonrası) → finansman tabanı
+  const effectiveCapex = capexAfterKdv - grantAmount;
+
+  // ── SGK PRİM DESTEĞİ (opsiyonel)
   const sgkBurdenAmt = (workers * workerSalary * 12 + mgmt * mgmtSalary * 12) * burden;
   const sgkAnnualSaving = ytbSgk ? sgkBurdenAmt * ytbSgkRate : 0;
 
-  // ── FINANCING (Ziraat efektif faiz)
+  // ── ZİRAAT KREDİSİ (net CAPEX üzerinden)
   const finRate = zbEffective;
   const debt = effectiveCapex * finLeverage;
   const equity = effectiveCapex - debt;
   const paymentTerm = Math.max(finTerm - finGrace, 1);
-  const annuityFactor = finRate > 0 
+  const annuityFactor = finRate > 0
     ? (finRate * Math.pow(1+finRate, paymentTerm)) / (Math.pow(1+finRate, paymentTerm) - 1)
     : 1/paymentTerm;
   const annualDebtService = debt * annuityFactor;
   const graceAnnualInterest = debt * finRate;
 
-  // ── PAYBACK (simple, before debt service)
+  // ── PAYBACK (basit; brüt yatırım & özkaynak)
   const payback = net_profit > 0 ? cap_total / net_profit : Infinity;
-  const paybackWithDebt = (net_profit - annualDebtService) > 0 
-    ? equity / (net_profit - annualDebtService) 
+  const paybackWithDebt = (net_profit - annualDebtService) > 0
+    ? equity / (net_profit - annualDebtService)
     : Infinity;
 
-  // ── ENERGY SAVING vs %100 KÖMÜR
-  const coalOnly = heatKwh * coalRate + electric;
-  const energySaving = coalOnly - cost_energy;
-  const energySavingPct = coalOnly > 0 ? (energySaving / coalOnly) * 100 : 0;
-
-
-  // ── BAŞLANGIÇ NAKİT İHTİYACI
-  // = Özkaynak (CAPEX - kredi) + inşaat dönemi OPEX tamponu + işletme sermayesi
-  const constructionOpex = (opex_total / 12) * constructionMonths * 0.3; // inşaat döneminde %30 OPEX (personel, hazırlık)
-  const cashNeeded = equity + constructionOpex + workingCap;
+  // ── BAŞLANGIÇ NAKİT İHTİYACI (hibe köprüsü dahil)
+  // = Özkaynak + hibe köprüsü (peşin harcanır, sonra hakedişle döner) + köprü maliyeti
+  //   + inşaat dönemi OPEX tamponu + işletme sermayesi
+  const constructionOpex = (opex_total / 12) * constructionMonths * 0.3;
+  const cashNeeded = equity + grantAmount + bridgeCost + constructionOpex + workingCap;
 
   const infRev  = g('inf_rev')  / 100;   // gelir fiyat artışı
   const infCost = g('inf_cost') / 100;   // maliyet artışı
@@ -1478,10 +1543,11 @@ function calculate() {
 
   for (let yr = 0; yr <= 10; yr++) {
     if (yr === 0) {
-      cumulativeCash = -(equity + constructionOpex + workingCap);
-      years.push({ yr: 'Y0', gelir: 0, opex: 0, net: 0, taksit: 0, sgkDestek: 0,
+      // Kuruluşta tüm peşin çıkış: özkaynak + hibe köprüsü (peşin harcanır) + inşaat + işl. sermayesi
+      cumulativeCash = -(equity + grantAmount + constructionOpex + workingCap);
+      years.push({ yr: 'Y0', gelir: 0, opex: 0, net: 0, taksit: 0, sgkDestek: 0, grantInflow: 0,
         freeCash: 0, kumulatif: cumulativeCash, realFreeCash: 0, kumulatifReal: cumulativeCash,
-        revFactor: 1, costFactor: 1, note: 'Kuruluş' });
+        revFactor: 1, costFactor: 1, note: 'Kuruluş + hibe köprüsü' });
     } else {
       const revFactor  = Math.pow(1 + infRev,  yr - 1);
       const costFactor = Math.pow(1 + infCost, yr - 1);
@@ -1501,19 +1567,23 @@ function calculate() {
         yTaksit = -annualDebtService;
       }
 
-      const yFreeCash = yNet + yTaksit;
+      // 1. yıl: hibe hakedişle geri döner (köprü maliyeti düşülür)
+      const yGrantInflow = (yr === 1) ? (grantAmount - bridgeCost) : 0;
+
+      const yFreeCash = yNet + yTaksit + yGrantInflow;
       const yRealFree = yFreeCash / deflFactor;
       cumulativeCash += yFreeCash;
       cumulativeReal += yRealFree;
 
       const notes = [];
       if (yr === 1) notes.push(`%${Math.round(rampup*100)} kap.`);
+      if (yGrantInflow > 0) notes.push(`hibe +${fmt(grantAmount)}`);
       if (yr <= finGrace) notes.push('grace');
       if (ySgkSaving > 0) notes.push('SGK↓');
       if (yNet < 0) notes.push('⚠ zarar');
 
       years.push({ yr: `Y${yr}`, gelir: yRev, opex: -yOpex, net: yNet,
-        taksit: yTaksit, sgkDestek: ySgkSaving, freeCash: yFreeCash,
+        taksit: yTaksit, sgkDestek: ySgkSaving, grantInflow: yGrantInflow, freeCash: yFreeCash,
         realFreeCash: yRealFree,
         kumulatif: cumulativeCash, kumulatifReal: cumulativeReal,
         revFactor, costFactor, deflFactor, note: notes.join(' ') });
@@ -1521,19 +1591,20 @@ function calculate() {
   }
 
   return {
-    thermalPct, area,
+    area,
     totalKg, grade1Kg, grade2Kg,
     rev_grade1, rev_grade2, rev_total,
-    cost_thermal, cost_coal, electric,
+    cost_coal, electric,
     cost_energy, cost_inputs, cost_packaging, cost_personnel, cost_other, landAnnual,
     opex_total, net_profit, margin,
     cap_total, cap_perM2, capUSDperM2,
     debt, equity, annualDebtService, payback, paybackWithDebt,
-    coalOnly, energySaving, energySavingPct,
+    coalRate, coalTon, heatGwh, usefulKwhPerKg,
     capUSD,
     kdvSaving, effectiveCapex, sgkAnnualSaving, cashNeeded, workingCap, constructionOpex,
+    grantAmount, grantBase, grantShare, bridgeCost, grantArea, grantRate,
     years, finRate, finGrace, graceAnnualInterest, zbTotalDisc, zbEffective,
-    ytbSgk, ytbSgkYears, sgkAnnualSaving, infRev, infCost
+    ytbKdv, ytbSgk, ytbSgkYears, infRev, infCost
   };
 }
 
@@ -1541,13 +1612,15 @@ function calculate() {
 function render() {
   const d = calculate();
 
-  // Slider display
-  const thermalPct = Math.round(d.thermalPct * 100);
-  document.getElementById('thermalPctDisplay').textContent = thermalPct;
-  document.getElementById('coalPctText').textContent = `Kömür: %${100 - thermalPct}`;
-  document.getElementById('energyBarFill').style.width = thermalPct + '%';
-  document.getElementById('thermalCostDisplay').textContent = fmtTL(d.cost_thermal);
+  // Isıtma (katı yakıt) özeti
+  document.getElementById('coalTonDisplay').textContent = fmt(d.coalTon);
+  document.getElementById('coalRateText').textContent = `${d.coalRate.toFixed(2)} TL/kWh ısı · ${d.heatGwh} GWh/yıl`;
   document.getElementById('coalCostDisplay').textContent = fmtTL(d.cost_coal);
+  document.getElementById('heatPerM2Display').textContent = fmtTL(d.cost_energy / d.area) + '/m²';
+  const coalRateDisp = document.getElementById('coalRateDisplay');
+  const coalDerivedNote = document.getElementById('coalDerivedNote');
+  if (coalRateDisp) coalRateDisp.textContent = `${d.coalRate.toFixed(2)} TL/kWh`;
+  if (coalDerivedNote) coalDerivedNote.textContent = `${fmt(d.coalTon)} ton/yıl · ${d.usefulKwhPerKg.toFixed(2)} kWh faydalı/kg`;
 
   // KPIs
   const kpiProfit = document.getElementById('kpi_netProfit');
@@ -1584,7 +1657,7 @@ function render() {
   document.getElementById('kpi_marginSub').textContent = `Ciro: ${fmtTL(d.rev_total)}`;
 
   document.getElementById('kpi_capex').textContent = fmtTL(d.effectiveCapex);
-  document.getElementById('kpi_capexSub').textContent = `${(d.effectiveCapex/d.area/d.capUSD).toFixed(0)} USD/m² · KDV tasarr: ${fmtTL(d.kdvSaving)}`;
+  document.getElementById('kpi_capexSub').textContent = `${(d.cap_total/d.area/d.capUSD).toFixed(0)} USD/m² (brüt) · Hibe: ${fmtTL(d.grantAmount)}`;
 
   // P&L TABLE
   const rows = [
@@ -1594,9 +1667,8 @@ function render() {
     { label: 'TOPLAM GELİR', value: d.rev_total, cls: 'total-row' },
     { label: '', value: null },
     { label: '📕 GİDERLER', value: null, cls: 'subtotal' },
-    { label: '  Termal ısıtma (işletme)', value: d.cost_thermal, cls: 'indent' },
-    { label: '  Kömür ısıtma', value: d.cost_coal, cls: 'indent' },
-    { label: '  Elektrik (pompa, fan, soÄŸuk oda)', value: d.electric, cls: 'indent' },
+    { label: '  Kömür ısıtma (katı yakıt)', value: d.cost_coal, cls: 'indent' },
+    { label: '  Elektrik (pompa, fan, soğuk oda)', value: d.electric, cls: 'indent' },
     { label: '  Gübre + tohum + ortam + ilaç', value: d.cost_inputs, cls: 'indent' },
     { label: '  Ambalaj', value: d.cost_packaging, cls: 'indent' },
     { label: '  Personel (işçi + teknik/yönetici)', value: d.cost_personnel, cls: 'indent' },
@@ -1626,9 +1698,9 @@ function render() {
   }).join('');
 
   // COST PIE CHART
-  const costLabels = ['Termal Isıtma', 'Kömür Isıtma', 'Elektrik', 'Gübre/Girdiler', 'Ambalaj', 'Personel', 'G.Ü.G.+Diğer', 'Arazi'];
-  const costData = [d.cost_thermal, d.cost_coal, d.electric, d.cost_inputs, d.cost_packaging, d.cost_personnel, d.cost_other, d.landAnnual];
-  const costColors = ['#ff6b1a', '#4a5568', '#3a9fd4', '#22c97a', '#a78bfa', '#f59e0b', '#64748b', '#84cc16'];
+  const costLabels = ['Kömür Isıtma', 'Elektrik', 'Gübre/Girdiler', 'Ambalaj', 'Personel', 'G.Ü.G.+Diğer', 'Arazi'];
+  const costData = [d.cost_coal, d.electric, d.cost_inputs, d.cost_packaging, d.cost_personnel, d.cost_other, d.landAnnual];
+  const costColors = ['#4a5568', '#3a9fd4', '#22c97a', '#a78bfa', '#f59e0b', '#64748b', '#84cc16'];
 
   if (costChart) { costChart.destroy(); }
   costChart = new Chart(document.getElementById('costChart'), {
@@ -1653,12 +1725,13 @@ function render() {
     }
   });
 
-  // ENERGY SAVING NOTE
+  // ISITMA NOTU
   const note = document.getElementById('energySavingNote');
-  note.innerHTML = `⚡ <b>Enerji tasarrufu (vs. %100 kömür):</b><br>` +
-    `Kömür only: ${fmtTL(d.coalOnly)}<br>` +
-    `Mevcut mix: ${fmtTL(d.cost_energy)}<br>` +
-    `<span style="color:#ff6b1a;font-weight:600">Tasarruf: ${fmtTL(d.energySaving)} (%${d.energySavingPct.toFixed(0)})</span>`;
+  const energyPctOfOpex = d.opex_total > 0 ? (d.cost_energy / d.opex_total * 100) : 0;
+  note.innerHTML = `🔥 <b>Katı yakıt ısıtma yükü (Elmadağ):</b><br>` +
+    `Yıllık ısı ihtiyacı: ${d.heatGwh} GWh · Kömür: <b style="color:#718096">${fmt(d.coalTon)} ton/yıl</b><br>` +
+    `Kömür gideri: ${fmtTL(d.cost_coal)} · Elektrik: ${fmtTL(d.electric)}<br>` +
+    `<span style="color:#ff6b1a;font-weight:600">Enerji, toplam giderin %${energyPctOfOpex.toFixed(0)}'ı</span>`;
 
   // BAR CHART
   if (barChart) { barChart.destroy(); }
@@ -1686,7 +1759,7 @@ function render() {
 
   // SENSITIVITY TABLE
   const prices = [30, 40, 45, 55, 65];
-  const yields = [28, 35, 38, 45, 50];
+  const yields = [40, 45, 50, 55, 60];
   
   let stHtml = `<div style="overflow-x:auto"><table style="border-collapse:collapse;width:100%">`;
   stHtml += `<tr><td style="padding:4px 8px;color:var(--text3);font-size:10px;">kg/m²↓ TL/kg→</td>`;
@@ -1727,16 +1800,26 @@ function render() {
   const frDisp = document.getElementById('fin_rate_display');
   if (frDisp) frDisp.textContent = `%${(d.finRate*100).toFixed(1)}`;
 
+  // Hibe gösterimi
+  const grantDisp = document.getElementById('grant_amountDisplay');
+  const grantNote = document.getElementById('grant_amountNote');
+  if (grantDisp) grantDisp.textContent = fmtTL(d.grantAmount);
+  if (grantNote) grantNote.textContent = `${d.grantArea} dönüm × %${Math.round(d.grantRate*100)} · köprü mal.: ${fmtTL(d.bridgeCost)}`;
+
   document.getElementById('cashStartNote').innerHTML = `
     <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
       <span style="font-size:11px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;">💰 Başlangıçta Cebinde Olması Gereken</span>
       <span style="font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:var(--thermal);letter-spacing:-0.02em;">${fmtTL(d.cashNeeded)}</span>
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
+    <div class="note-grid-3" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;">
       <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px;">
         <div style="font-size:9px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Özkaynak</div>
         <div style="font-size:16px;font-weight:600;color:var(--text);">${fmtTL(d.equity)}</div>
+      </div>
+      <div style="background:rgba(34,201,122,0.06);border:1px solid rgba(34,201,122,0.18);border-radius:8px;padding:12px 14px;">
+        <div style="font-size:9px;color:#22c97a;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Hibe Köprüsü</div>
+        <div style="font-size:16px;font-weight:600;color:#22c97a;">${fmtTL(d.grantAmount)}</div>
       </div>
       <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px;">
         <div style="font-size:9px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">İnşaat Hazırlık</div>
@@ -1748,15 +1831,17 @@ function render() {
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:11px;color:var(--text3);">
-      <div>Toplam CAPEX: <b style="color:var(--text)">${fmtTL(d.cap_total)}</b></div>
-      <div>Efektif CAPEX (KDV sonrası): <b style="color:var(--text)">${fmtTL(d.effectiveCapex)}</b></div>
-      <div>KDV İstisnası Tasarrufu: <b style="color:#22c97a">${fmtTL(d.kdvSaving)}</b></div>
-      <div>Kredi Tutarı: <b style="color:var(--text)">${fmtTL(d.debt)}</b></div>
-      <div>Ziraat Faiz (efektif): <b style="color:#22c97a">%${(d.finRate*100).toFixed(1)}</b>${d.finGrace > 0 ? ` · Grace: <b>${d.finGrace} yıl</b>` : ''}</div>
-      ${d.ytbSgk ? `<div>SGK Desteği: <b style="color:#22c97a">${fmtTL(d.sgkAnnualSaving)}/yıl</b> · ${d.ytbSgkYears} yıl</div>` : '<div></div>'}
-      <div>Gelir Enflasyonu: <b style="color:var(--text)">+%${(d.infRev*100).toFixed(0)}/yıl</b></div>
-      <div>Maliyet Enflasyonu: <b style="color:var(--text)">+%${(d.infCost*100).toFixed(0)}/yıl</b></div>
+    <div class="note-grid-2" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:11px;color:var(--text3);">
+      <div>Toplam (brüt) CAPEX: <b style="color:var(--text)">${fmtTL(d.cap_total)}</b></div>
+      <div>Hibe (${d.grantArea} dönüm × %${Math.round(d.grantRate*100)}): <b style="color:#22c97a">${fmtTL(d.grantAmount)}</b></div>
+      <div>Net yatırım (hibe sonrası): <b style="color:var(--text)">${fmtTL(d.effectiveCapex)}</b></div>
+      <div>Köprü finansman maliyeti: <b style="color:#f59e0b">${fmtTL(d.bridgeCost)}</b></div>
+      <div>Ziraat kredi tutarı: <b style="color:var(--text)">${fmtTL(d.debt)}</b></div>
+      <div>Ziraat faiz (efektif): <b style="color:#22c97a">%${(d.finRate*100).toFixed(1)}</b>${d.finGrace > 0 ? ` · Grace: <b>${d.finGrace} yıl</b>` : ''}</div>
+      ${d.ytbKdv ? `<div>KDV istisnası: <b style="color:#22c97a">${fmtTL(d.kdvSaving)}</b></div>` : ''}
+      ${d.ytbSgk ? `<div>SGK desteği: <b style="color:#22c97a">${fmtTL(d.sgkAnnualSaving)}/yıl</b> · ${d.ytbSgkYears} yıl</div>` : ''}
+      <div>Gelir enflasyonu: <b style="color:var(--text)">+%${(d.infRev*100).toFixed(0)}/yıl</b></div>
+      <div>Maliyet enflasyonu: <b style="color:var(--text)">+%${(d.infCost*100).toFixed(0)}/yıl</b></div>
     </div>`;
 
   const cols = ['Yıl','Gelir (nom.)','OPEX (nom.)','Net Kâr','Taksit','Serbest Nakit','Reel S.Nakit*','Kümülatif (nom.)','Not'];
@@ -1809,10 +1894,10 @@ function setScenario(s) {
   event.target.classList.add('active');
 
   const scenarios = {
-    pessimistic: { p_yield: 28, r_tomatoPrice: 32, thermalSlider: 20, zb_baseRate: 45, zb_youngDisc: 0, zb_planDisc: 0, zb_contractDisc: 0, inf_rev: 25, inf_cost: 38 },
-    base:        { p_yield: 38, r_tomatoPrice: 45, thermalSlider: 20, zb_baseRate: 40, zb_youngDisc: 15, zb_planDisc: 20, zb_contractDisc: 0, inf_rev: 30, inf_cost: 35 },
-    optimistic:  { p_yield: 48, r_tomatoPrice: 58, thermalSlider: 60, zb_baseRate: 38, zb_youngDisc: 15, zb_planDisc: 20, zb_contractDisc: 15, inf_rev: 35, inf_cost: 30 },
-    fullThermal: { p_yield: 38, r_tomatoPrice: 45, thermalSlider: 100, zb_baseRate: 40, zb_youngDisc: 15, zb_planDisc: 20, zb_contractDisc: 0, inf_rev: 30, inf_cost: 35 }
+    pessimistic: { p_yield: 42, r_tomatoPrice: 35, e_coalPriceTon: 10000, grant_rate: 60, zb_baseRate: 45, zb_youngDisc: 0,  zb_planDisc: 0,  zb_contractDisc: 0,  inf_rev: 25, inf_cost: 40 },
+    base:        { p_yield: 50, r_tomatoPrice: 45, e_coalPriceTon: 8500,  grant_rate: 60, zb_baseRate: 40, zb_youngDisc: 15, zb_planDisc: 20, zb_contractDisc: 0,  inf_rev: 30, inf_cost: 35 },
+    optimistic:  { p_yield: 58, r_tomatoPrice: 55, e_coalPriceTon: 7000,  grant_rate: 60, zb_baseRate: 38, zb_youngDisc: 15, zb_planDisc: 20, zb_contractDisc: 15, inf_rev: 35, inf_cost: 30 },
+    noGrant:     { p_yield: 50, r_tomatoPrice: 45, e_coalPriceTon: 8500,  grant_rate: 0,  zb_baseRate: 40, zb_youngDisc: 15, zb_planDisc: 20, zb_contractDisc: 0,  inf_rev: 30, inf_cost: 35 }
   };
 
   const sc = scenarios[s];
@@ -1824,7 +1909,7 @@ function setScenario(s) {
 }
 
 // ─── LOCALSTORAGE: KAYDET / YÜKLE ─────────────────────────────────────────
-const LS_KEY = 'sera_fizibilite_v20';
+const LS_KEY = 'sera_fizibilite_v30';
 
 function getAllInputValues() {
   const data = {};

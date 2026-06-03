@@ -1032,19 +1032,11 @@
       <div class="section-title">Tarım Bakanlığı Hibesi (5 dönüm)</div>
       <div class="param-row">
         <div>
-          <div class="param-label">Hibeye konu alan</div>
-          <span class="param-sublabel">5+15 modeli: 5 dönüm bakanlığa sunulur</span>
+          <div class="param-label">Hibe tutarı (sabit)</div>
+          <span class="param-sublabel">5+15 modeli; 5 dönümlük proje hibesi</span>
         </div>
-        <span class="param-unit">dönüm</span>
-        <input type="number" class="param-input" id="grant_area" value="5" step="1">
-      </div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">Hibe oranı</div>
-          <span class="param-sublabel">Hibeye konu CAPEX'in karşılanan %'si</span>
-        </div>
-        <span class="param-unit">%</span>
-        <input type="number" class="param-input" id="grant_rate" value="60" step="5" min="0" max="100">
+        <span class="param-unit">TL</span>
+        <input type="number" class="param-input wide" id="grant_amount" value="30000000" step="1000000">
       </div>
       <div class="param-row">
         <div>
@@ -1064,7 +1056,7 @@
       </div>
       <div class="param-row" style="background:rgba(34,201,122,0.08);border-radius:6px;padding:8px;">
         <div>
-          <div class="param-label" style="color:#22c97a;">⇒ Tahmini hibe tutarı</div>
+          <div class="param-label" style="color:#22c97a;">⇒ Hibe sonrası net yatırım</div>
           <span class="param-sublabel" id="grant_amountNote" style="color:#22c97a;">—</span>
         </div>
         <span class="param-unit" style="color:#22c97a;font-weight:700;font-size:14px;" id="grant_amountDisplay">—</span>
@@ -1075,17 +1067,17 @@
     <div class="section">
       <div class="section-title">Ziraat Bankası Kredisi</div>
       <div class="param-row">
-        <div><div class="param-label">Efektif faiz oranı</div><span class="param-sublabel">Ziraat indirimleri uygulanmış</span></div>
+        <div><div class="param-label">Yıllık faiz oranı</div><span class="param-sublabel">Sabit; indirimli tarımsal yatırım kredisi</span></div>
         <span class="param-unit">%</span>
-        <span class="param-input" id="fin_rate_display" style="text-align:center;font-weight:600;color:#22c97a;">—</span>
+        <input type="number" class="param-input" id="zb_rate" value="8" step="0.5">
       </div>
       <div class="param-row">
-        <div><div class="param-label">Kredi oranı (net CAPEX'in %'si)</div><span class="param-sublabel">Hibe sonrası kalan yatırımın kredilenen payı</span></div>
+        <div><div class="param-label">Kredi oranı (net CAPEX'in %'si)</div><span class="param-sublabel">Hibe sonrası kalanın tamamı kredi = %100</span></div>
         <span class="param-unit">%</span>
-        <input type="number" class="param-input" id="fin_leverage" value="65" step="5" min="0" max="100">
+        <input type="number" class="param-input" id="fin_leverage" value="100" step="5" min="0" max="100">
       </div>
       <div class="param-row">
-        <div><div class="param-label">Kredi vadesi</div></div>
+        <div><div class="param-label">Kredi vadesi</div><span class="param-sublabel">İlk 2 yıl faiz + 5 yıl anapara (grace aşağıda)</span></div>
         <span class="param-unit">yıl</span>
         <input type="number" class="param-input" id="fin_term" value="7" step="1">
       </div>
@@ -1119,58 +1111,6 @@
         <div><div class="param-label">SGK destek süresi</div></div>
         <span class="param-unit">yıl</span>
         <input type="number" class="param-input" id="ytb_sgkYears" value="7" step="1">
-      </div>
-    </div>
-
-    <!-- ZİRAAT BANKASI KREDİ -->
-    <div class="section">
-      <div class="section-title">Ziraat Faiz İndirimleri</div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">Piyasa faiz oranı (baz)</div>
-          <span class="param-sublabel">Ziraat referans oran</span>
-        </div>
-        <span class="param-unit">%</span>
-        <input type="number" class="param-input" id="zb_baseRate" value="40" step="1">
-      </div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">Hazine desteği (baz indirim)</div>
-          <span class="param-sublabel">Örtü altı / modern sera yatırım indirimi</span>
-        </div>
-        <span class="param-unit">%</span>
-        <input type="number" class="param-input" id="zb_baseDisc" value="50" step="5">
-      </div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">Genç çiftçi (&lt;40 yaş)</div>
-          <span class="param-sublabel">Ek indirim bonusu</span>
-        </div>
-        <span class="param-unit">%</span>
-        <input type="number" class="param-input" id="zb_youngDisc" value="15" step="1">
-      </div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">Planlı üretim indirimi</div>
-          <span class="param-sublabel">Bakanlık onaylı planlı üretim</span>
-        </div>
-        <span class="param-unit">%</span>
-        <input type="number" class="param-input" id="zb_planDisc" value="20" step="5">
-      </div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">Sözleşmeli üretim indirimi</div>
-          <span class="param-sublabel">Alıcı sözleşmesi varsa</span>
-        </div>
-        <span class="param-unit">%</span>
-        <input type="number" class="param-input" id="zb_contractDisc" value="0" step="5">
-      </div>
-      <div class="param-row" style="background:rgba(34,201,122,0.08);border-radius:6px;padding:8px;">
-        <div>
-          <div class="param-label" style="color:#22c97a;">⇒ Efektif faiz oranı</div>
-          <span class="param-sublabel" id="zb_effectiveNote" style="color:#22c97a;">—</span>
-        </div>
-        <span class="param-unit" style="color:#22c97a;font-weight:700;font-size:16px;" id="zb_effectiveDisplay">—</span>
       </div>
     </div>
 
@@ -1457,9 +1397,8 @@ function calculate() {
   const capLandPeriod = g('cap_landPeriod');
   const contingency = g('cap_contingency') / 100;
 
-  // — TARIM BAKANLIĞI HİBESİ
-  const grantArea = g('grant_area');             // hibeye konu alan (dönüm)
-  const grantRate = g('grant_rate') / 100;       // hibe oranı
+  // — TARIM BAKANLIĞI HİBESİ (sabit tutar)
+  const grantInput = g('grant_amount');          // sabit hibe tutarı (TL)
   const grantLag  = g('grant_lag');              // hakediş gecikmesi (ay)
   const bridgeRate = g('grant_bridgeRate') / 100; // köprü finansman yıllık faizi
 
@@ -1472,14 +1411,8 @@ function calculate() {
   const ytbSgkRate = g('ytb_sgkRate') / 100;
   const ytbSgkYears = g('ytb_sgkYears');
 
-  // — ZİRAAT FAİZ İNDİRİMLERİ
-  const zbBase = g('zb_baseRate') / 100;
-  const zbBaseDisc = g('zb_baseDisc') / 100;
-  const zbYoung = g('zb_youngDisc') / 100;
-  const zbPlan = g('zb_planDisc') / 100;
-  const zbContract = g('zb_contractDisc') / 100;
-  const zbTotalDisc = Math.min(zbBaseDisc + zbYoung + zbPlan + zbContract, 1.0);
-  const zbEffective = zbBase * (1 - zbTotalDisc);
+  // — ZİRAAT FAİZ (sabit yıllık oran)
+  const zbEffective = g('zb_rate') / 100;
 
   const finGrace = g('fin_grace');
   const constructionMonths = g('fin_construction');
@@ -1533,12 +1466,8 @@ function calculate() {
   const kdvSaving = ytbKdv ? cap_total * 0.20 : 0;
   const capexAfterKdv = cap_total - kdvSaving;
 
-  // ── TARIM BAKANLIĞI HİBESİ (5 dönüm, %60)
-  // Sera alanı dönüm cinsinden; hibeye konu alan oranı kadar CAPEX hibeye girer
-  const areaDekar = area / 1000;
-  const grantShare = areaDekar > 0 ? Math.min(grantArea / areaDekar, 1) : 0;
-  const grantBase = capexAfterKdv * grantShare;   // hibeye konu CAPEX
-  const grantAmount = grantBase * grantRate;       // bakanlıktan gelecek hibe (gecikmeli)
+  // ── TARIM BAKANLIĞI HİBESİ (sabit tutar; hibe sonrası kalanın tamamı kredi)
+  const grantAmount = Math.min(grantInput, capexAfterKdv);   // CAPEX'i aşamaz
   // Köprü maliyeti: hibe tahsil edilene dek tutar finanse edilir
   const bridgeCost = grantAmount * bridgeRate * (grantLag / 12);
   // Net yatırım (hibe sonrası) → finansman tabanı
@@ -1642,8 +1571,8 @@ function calculate() {
     workers, workersPeak, workersLow, avgDensity,
     capUSD,
     kdvSaving, effectiveCapex, sgkAnnualSaving, cashNeeded, workingCap, constructionOpex,
-    grantAmount, grantBase, grantShare, bridgeCost, grantArea, grantRate,
-    years, finRate, finGrace, graceAnnualInterest, zbTotalDisc, zbEffective,
+    grantAmount, bridgeCost,
+    years, finRate, finGrace, graceAnnualInterest, zbEffective,
     ytbKdv, ytbSgk, ytbSgkYears, infRev, infCost
   };
 }
@@ -1839,20 +1768,11 @@ function render() {
   document.getElementById('sensitivityTable').innerHTML = stHtml;
 
   // ── YIL YIL NAKİT AKIŞI
-  // Ziraat efektif faiz gösterimi
-  const zbEffDisp = document.getElementById('zb_effectiveDisplay');
-  const zbEffNote = document.getElementById('zb_effectiveNote');
-  const discPct = Math.round(d.zbTotalDisc * 100);
-  if (zbEffDisp) zbEffDisp.textContent = `%${(d.zbEffective*100).toFixed(1)}`;
-  if (zbEffNote) zbEffNote.textContent = `Toplam indirim: %${discPct}${d.zbTotalDisc >= 1 ? ' (sıfır faiz!)' : ''}`;
-  const frDisp = document.getElementById('fin_rate_display');
-  if (frDisp) frDisp.textContent = `%${(d.finRate*100).toFixed(1)}`;
-
-  // Hibe gösterimi
+  // Hibe / net yatırım gösterimi
   const grantDisp = document.getElementById('grant_amountDisplay');
   const grantNote = document.getElementById('grant_amountNote');
-  if (grantDisp) grantDisp.textContent = fmtTL(d.grantAmount);
-  if (grantNote) grantNote.textContent = `${d.grantArea} dönüm × %${Math.round(d.grantRate*100)} · köprü mal.: ${fmtTL(d.bridgeCost)}`;
+  if (grantDisp) grantDisp.textContent = fmtTL(d.effectiveCapex);
+  if (grantNote) grantNote.textContent = `Hibe ${fmtTL(d.grantAmount)} · köprü mal. ${fmtTL(d.bridgeCost)} · tamamı kredi`;
 
   document.getElementById('cashStartNote').innerHTML = `
     <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
@@ -1881,11 +1801,11 @@ function render() {
 
     <div class="note-grid-2" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:11px;color:var(--text3);">
       <div>Toplam (brüt) CAPEX: <b style="color:var(--text)">${fmtTL(d.cap_total)}</b></div>
-      <div>Hibe (${d.grantArea} dönüm × %${Math.round(d.grantRate*100)}): <b style="color:#22c97a">${fmtTL(d.grantAmount)}</b></div>
+      <div>Tarım Bak. hibesi: <b style="color:#22c97a">${fmtTL(d.grantAmount)}</b></div>
       <div>Net yatırım (hibe sonrası): <b style="color:var(--text)">${fmtTL(d.effectiveCapex)}</b></div>
       <div>Köprü finansman maliyeti: <b style="color:#f59e0b">${fmtTL(d.bridgeCost)}</b></div>
       <div>Ziraat kredi tutarı: <b style="color:var(--text)">${fmtTL(d.debt)}</b></div>
-      <div>Ziraat faiz (efektif): <b style="color:#22c97a">%${(d.finRate*100).toFixed(1)}</b>${d.finGrace > 0 ? ` · Grace: <b>${d.finGrace} yıl</b>` : ''}</div>
+      <div>Ziraat faiz (sabit): <b style="color:#22c97a">%${(d.finRate*100).toFixed(1)}</b> · ${d.finGrace} yıl faiz + sonra anapara</div>
       ${d.ytbKdv ? `<div>KDV istisnası: <b style="color:#22c97a">${fmtTL(d.kdvSaving)}</b></div>` : ''}
       ${d.ytbSgk ? `<div>SGK desteği: <b style="color:#22c97a">${fmtTL(d.sgkAnnualSaving)}/yıl</b> · ${d.ytbSgkYears} yıl</div>` : ''}
       <div>Gelir enflasyonu: <b style="color:var(--text)">+%${(d.infRev*100).toFixed(0)}/yıl</b></div>
@@ -1942,10 +1862,10 @@ function setScenario(s) {
   event.target.classList.add('active');
 
   const scenarios = {
-    pessimistic: { p_yield: 42, r_tomatoPrice: 35, e_coalPriceTon: 10000, grant_rate: 60, zb_baseRate: 45, zb_youngDisc: 0,  zb_planDisc: 0,  zb_contractDisc: 0,  inf_rev: 25, inf_cost: 40 },
-    base:        { p_yield: 50, r_tomatoPrice: 45, e_coalPriceTon: 8500,  grant_rate: 60, zb_baseRate: 40, zb_youngDisc: 15, zb_planDisc: 20, zb_contractDisc: 0,  inf_rev: 30, inf_cost: 35 },
-    optimistic:  { p_yield: 58, r_tomatoPrice: 55, e_coalPriceTon: 7000,  grant_rate: 60, zb_baseRate: 38, zb_youngDisc: 15, zb_planDisc: 20, zb_contractDisc: 15, inf_rev: 35, inf_cost: 30 },
-    noGrant:     { p_yield: 50, r_tomatoPrice: 45, e_coalPriceTon: 8500,  grant_rate: 0,  zb_baseRate: 40, zb_youngDisc: 15, zb_planDisc: 20, zb_contractDisc: 0,  inf_rev: 30, inf_cost: 35 }
+    pessimistic: { p_yield: 42, r_tomatoPrice: 35, e_coalPriceTon: 10000, grant_amount: 30000000, zb_rate: 10, inf_rev: 25, inf_cost: 40 },
+    base:        { p_yield: 50, r_tomatoPrice: 45, e_coalPriceTon: 8500,  grant_amount: 30000000, zb_rate: 8,  inf_rev: 30, inf_cost: 35 },
+    optimistic:  { p_yield: 58, r_tomatoPrice: 55, e_coalPriceTon: 7000,  grant_amount: 30000000, zb_rate: 6,  inf_rev: 35, inf_cost: 30 },
+    noGrant:     { p_yield: 50, r_tomatoPrice: 45, e_coalPriceTon: 8500,  grant_amount: 0,         zb_rate: 8,  inf_rev: 30, inf_cost: 35 }
   };
 
   const sc = scenarios[s];

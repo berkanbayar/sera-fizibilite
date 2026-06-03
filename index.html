@@ -907,8 +907,8 @@
       </div>
       <div class="param-row">
         <div><div class="param-label">Ambalaj (kutu, klips, ip)</div></div>
-        <span class="param-unit">TL/kg</span>
-        <input type="number" class="param-input" id="c_packaging" value="1.80" step="0.10">
+        <span class="param-unit">TL/m²/yıl</span>
+        <input type="number" class="param-input" id="c_packaging" value="165" step="5">
       </div>
     </div>
 
@@ -1387,7 +1387,7 @@ function calculate() {
   const seedPerM2 = g('c_seed');
   const substratePerM2 = g('c_substrate');
   const pesticidePerM2 = g('c_pesticide');
-  const packagingPerKg = g('c_packaging');
+  const packagingPerM2 = g('c_packaging');   // TL/m²/yıl
   const overhead = g('c_overhead');
   const maintenance = g('c_maintenance');
   const logistics = g('c_logistics');
@@ -1464,7 +1464,7 @@ function calculate() {
 
   // ── INPUTS
   const cost_inputs = area * (fertPerM2 + seedPerM2 + substratePerM2 + pesticidePerM2);
-  const cost_packaging = totalKg * packagingPerKg;
+  const cost_packaging = area * packagingPerM2;
 
   // ── PERSONNEL
   const cost_workers = workers * workerSalary * 12 * (1 + burden);

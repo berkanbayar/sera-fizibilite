@@ -1947,7 +1947,7 @@ function migrateOldSave() {
       saves[name] = data;
       setSaves(saves);
     }
-    localStorage.removeItem(LS_KEY); // yalnızca başarılı taşımadan sonra temizle
+    // Not: eski kaydı SİLMİYORUZ — güvenlik için sera_fizibilite_v30 yerinde kalır
   } catch (e) { /* parse hatası: eski kaydı SİLME, olduğu gibi bırak */ }
 }
 

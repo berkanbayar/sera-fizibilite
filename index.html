@@ -759,9 +759,6 @@
           <div class="edc-value edc-thermal" id="heatPerM2Display">—</div>
         </div>
       </div>
-      <div style="margin-top:12px;font-size:9.5px;color:var(--text3);font-family:'IBM Plex Mono',monospace;line-height:1.6;">
-        Gelecek opsiyonlar (doğalgaz · Baştaş atık ısı 2,5 km · 900 m sondaj termal) modele sonradan eklenecek.
-      </div>
     </div>
 
     <!-- ÜRETİM PARAMETRELERİ -->
@@ -829,6 +826,14 @@
         </div>
         <span class="param-unit">GWh/yıl</span>
         <input type="number" class="param-input" id="e_heatGwh" value="10" step="0.5">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Kazan kapasitesi (tepe güç)</div>
+          <span class="param-sublabel" id="boilerCapNote">4 Mkcal/h ≈ 4,65 MW</span>
+        </div>
+        <span class="param-unit">kcal/h</span>
+        <input type="number" class="param-input wide" id="e_boilerCapacity" value="4000000" step="100000">
       </div>
       <div class="param-row">
         <div>
@@ -900,11 +905,25 @@
     </div>
 
     <div class="section">
-      <div class="section-title">Gider Kalemleri — Personel</div>
+      <div class="section-title">Gider Kalemleri — Personel (mevsimsel işçilik)</div>
       <div class="param-row">
-        <div><div class="param-label">Sera işçisi (kişi)</div><span class="param-sublabel">~0,9 kişi/dekar</span></div>
-        <span class="param-unit">kişi</span>
-        <input type="number" class="param-input" id="hr_workers" value="18" step="1">
+        <div><div class="param-label">Kış yoğunluğu</div><span class="param-sublabel">Ara/Oca/Şub + Kasım · 1.000 m² (dönüm) başına</span></div>
+        <span class="param-unit">kişi/dön</span>
+        <input type="number" class="param-input" id="hr_density_low" value="0.5" step="0.05">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Ana sezon yoğunluğu</div><span class="param-sublabel">Mart→Ağustos kademeli ulaşılan; Ekim</span></div>
+        <span class="param-unit">kişi/dön</span>
+        <input type="number" class="param-input" id="hr_density_mid" value="0.8" step="0.05">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Zirve yoğunluğu (Eylül)</div><span class="param-sublabel">En yoğun hasat ayı</span></div>
+        <span class="param-unit">kişi/dön</span>
+        <input type="number" class="param-input" id="hr_density_peak" value="1.25" step="0.05">
+      </div>
+      <div class="param-row" style="background:rgba(245,158,11,0.07);border-radius:6px;padding:8px;">
+        <div><div class="param-label" style="color:#f59e0b;">⇒ Ortalama işçi (yıllık)</div><span class="param-sublabel" id="hr_workerCountNote" style="color:#f59e0b;">—</span></div>
+        <span class="param-unit" style="color:#f59e0b;font-weight:700;font-size:13px;" id="hr_workerCountDisplay">—</span>
       </div>
       <div class="param-row">
         <div><div class="param-label">İşçi aylık brüt</div><span class="param-sublabel">2026 asgari ücret bandı</span></div>
@@ -1390,6 +1409,9 @@ function calculate() {
   const coalRate = usefulKwhPerKg > 0 ? (coalPriceTon / 1000) / usefulKwhPerKg : 0; // TL/kWh ısı
   const coalKg   = usefulKwhPerKg > 0 ? heatKwh / usefulKwhPerKg : 0;
   const coalTon  = coalKg / 1000;
+  // Kazan kapasitesi (tepe güç): 1 kcal/h = 1,163 W
+  const boilerCapKcal = g('e_boilerCapacity');     // kcal/h
+  const boilerMW = boilerCapKcal * 1.163 / 1e6;    // MW
   const electric = g('e_electric');
 
   const fertPerM2 = g('c_fertilizer');
@@ -1402,7 +1424,24 @@ function calculate() {
   const logistics = g('c_logistics');
   const water = g('c_water');
 
-  const workers = g('hr_workers');
+  // İşçilik: mevsimsel aylık yoğunluk profili (kişi/dönüm)
+  // Ara/Oca/Şub + Kasım = kış; Mart→Ağustos kademeli ana sezona; Eylül zirve; Ekim ana sezon
+  const dekarP = area / 1000;
+  const densLow  = g('hr_density_low');
+  const densMid  = g('hr_density_mid');
+  const densPeak = g('hr_density_peak');
+  const monthlyDensity = new Array(12);
+  monthlyDensity[0] = densLow;  // Ocak
+  monthlyDensity[1] = densLow;  // Şubat
+  for (let m = 0; m < 6; m++) monthlyDensity[2 + m] = densLow + (densMid - densLow) * ((m + 1) / 6); // Mart→Ağustos
+  monthlyDensity[8]  = densPeak; // Eylül (zirve)
+  monthlyDensity[9]  = densMid;  // Ekim
+  monthlyDensity[10] = densLow;  // Kasım
+  monthlyDensity[11] = densLow;  // Aralık
+  const avgDensity = monthlyDensity.reduce((a, b) => a + b, 0) / 12;
+  const workers = avgDensity * dekarP;       // yıllık ortalama işçi (adam-ay/12)
+  const workersPeak = densPeak * dekarP;     // zirve ay işçisi
+  const workersLow  = densLow * dekarP;      // kış ayı işçisi
   const workerSalary = g('hr_workerSalary');
   const mgmt = g('hr_mgmt');
   const mgmtSalary = g('hr_mgmtSalary');
@@ -1599,7 +1638,8 @@ function calculate() {
     opex_total, net_profit, margin,
     cap_total, cap_perM2, capUSDperM2,
     debt, equity, annualDebtService, payback, paybackWithDebt,
-    coalRate, coalTon, heatGwh, usefulKwhPerKg,
+    coalRate, coalTon, heatGwh, usefulKwhPerKg, boilerMW, boilerCapKcal,
+    workers, workersPeak, workersLow, avgDensity,
     capUSD,
     kdvSaving, effectiveCapex, sgkAnnualSaving, cashNeeded, workingCap, constructionOpex,
     grantAmount, grantBase, grantShare, bridgeCost, grantArea, grantRate,
@@ -1621,6 +1661,12 @@ function render() {
   const coalDerivedNote = document.getElementById('coalDerivedNote');
   if (coalRateDisp) coalRateDisp.textContent = `${d.coalRate.toFixed(2)} TL/kWh`;
   if (coalDerivedNote) coalDerivedNote.textContent = `${fmt(d.coalTon)} ton/yıl · ${d.usefulKwhPerKg.toFixed(2)} kWh faydalı/kg`;
+  const boilerCapNote = document.getElementById('boilerCapNote');
+  if (boilerCapNote) boilerCapNote.textContent = `${(d.boilerCapKcal/1e6).toFixed(1)} Mkcal/h ≈ ${d.boilerMW.toFixed(2)} MW · ${(d.boilerMW*1e6/d.area).toFixed(0)} W/m² tepe yük`;
+  const hrCountDisp = document.getElementById('hr_workerCountDisplay');
+  const hrCountNote = document.getElementById('hr_workerCountNote');
+  if (hrCountDisp) hrCountDisp.textContent = `${Math.round(d.workers)} kişi`;
+  if (hrCountNote) hrCountNote.textContent = `Kış ${Math.round(d.workersLow)} · zirve(Eyl) ${Math.round(d.workersPeak)} · ort. ${d.avgDensity.toFixed(2)} kişi/dön`;
 
   // KPIs
   const kpiProfit = document.getElementById('kpi_netProfit');
@@ -1728,8 +1774,10 @@ function render() {
   // ISITMA NOTU
   const note = document.getElementById('energySavingNote');
   const energyPctOfOpex = d.opex_total > 0 ? (d.cost_energy / d.opex_total * 100) : 0;
+  const eqFullLoadHours = d.boilerMW > 0 ? (d.heatGwh * 1000 / d.boilerMW) : 0;
   note.innerHTML = `🔥 <b>Katı yakıt ısıtma yükü (Elmadağ):</b><br>` +
     `Yıllık ısı ihtiyacı: ${d.heatGwh} GWh · Kömür: <b style="color:#718096">${fmt(d.coalTon)} ton/yıl</b><br>` +
+    `Kazan: <b style="color:#718096">${d.boilerMW.toFixed(2)} MW</b> (${(d.boilerMW*1e6/d.area).toFixed(0)} W/m²) · eşd. tam yük ~${Math.round(eqFullLoadHours)} h/yıl<br>` +
     `Kömür gideri: ${fmtTL(d.cost_coal)} · Elektrik: ${fmtTL(d.electric)}<br>` +
     `<span style="color:#ff6b1a;font-weight:600">Enerji, toplam giderin %${energyPctOfOpex.toFixed(0)}'ı</span>`;
 

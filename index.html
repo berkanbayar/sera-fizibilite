@@ -1200,8 +1200,11 @@
       <button class="scenario-btn active" id="btn_base" onclick="setScenario('base')">📊 Baz</button>
       <button class="scenario-btn" onclick="setScenario('optimistic')">🚀 İyimser</button>
       <button class="scenario-btn" onclick="setScenario('noGrant')">🚫 Hibe Onaysız</button>
-      <button class="scenario-btn" id="btn_saved" onclick="loadSaved()" style="border-color:#4a6cf7;color:#4a6cf7;" title="Kayıtlı senaryonu yükle">💾 Kayıtlı</button>
-      <button onclick="saveScenario()" style="margin-left:6px;padding:7px 14px;background:#4a6cf7;border:none;border-radius:6px;color:#fff;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;font-weight:600;letter-spacing:0.04em;transition:all 0.2s;box-shadow:0 2px 8px rgba(74,108,247,0.2);" onmouseover="this.style.background='#5b7bff';this.style.boxShadow='0 4px 12px rgba(74,108,247,0.35)'" onmouseout="this.style.background='#4a6cf7';this.style.boxShadow='0 2px 8px rgba(74,108,247,0.2)'" title="Mevcut ayarları kaydet">+ Kaydet</button>
+      <span style="width:1px;height:22px;background:var(--border2);margin:0 4px;"></span>
+      <select id="savedSelect" class="scenario-btn" style="border-color:#4a6cf7;color:#4a6cf7;padding-right:8px;max-width:170px;" title="Kayıtlı senaryolar"></select>
+      <button class="scenario-btn" onclick="loadSelected()" style="border-color:#4a6cf7;color:#4a6cf7;" title="Seçili kaydı yükle">📂 Yükle</button>
+      <button class="scenario-btn" onclick="deleteSelected()" style="border-color:#f04040;color:#f04040;" title="Seçili kaydı sil">🗑</button>
+      <button onclick="saveScenario()" style="margin-left:2px;padding:7px 14px;background:#4a6cf7;border:none;border-radius:6px;color:#fff;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;font-weight:600;letter-spacing:0.04em;transition:all 0.2s;box-shadow:0 2px 8px rgba(74,108,247,0.2);" onmouseover="this.style.background='#5b7bff'" onmouseout="this.style.background='#4a6cf7'" title="Mevcut ayarları isimle kaydet">+ Kaydet</button>
     </div>
 
     <!-- KPI STRIP - ROW 1: Kâr & Geri Dönüş -->
@@ -1913,8 +1916,14 @@ function setScenario(s) {
   render();
 }
 
-// ─── LOCALSTORAGE: KAYDET / YÜKLE ─────────────────────────────────────────
-const LS_KEY = 'sera_fizibilite_v30';
+// ─── LOCALSTORAGE: İSİMLE ÇOKLU KAYIT ─────────────────────────────────────
+const LS_KEY = 'sera_fizibilite_v30';            // eski tek kayıt (migration kaynağı)
+const SAVES_KEY = 'sera_fizibilite_saves_v1';     // yeni: { isim: {girdiler, _savedAt} }
+
+function getSaves() {
+  try { return JSON.parse(localStorage.getItem(SAVES_KEY)) || {}; } catch (e) { return {}; }
+}
+function setSaves(obj) { localStorage.setItem(SAVES_KEY, JSON.stringify(obj)); }
 
 function getAllInputValues() {
   const data = {};
@@ -1925,27 +1934,37 @@ function getAllInputValues() {
   return data;
 }
 
-function saveScenario() {
-  const data = getAllInputValues();
-  localStorage.setItem(LS_KEY, JSON.stringify(data));
-
-  // Buton feedback
-  const btn = event.target;
-  const orig = btn.textContent;
-  btn.textContent = '✓ Kaydedildi';
-  btn.style.background = '#22c97a';
-  setTimeout(() => { btn.textContent = orig; btn.style.background = '#4a6cf7'; }, 1500);
-
-  // Kayıtlı butonunu aktif et
-  updateSavedBtnLabel(data._savedAt);
+// Eski tek kaydı (varsa) çoklu yapıya taşı — mevcut kayıt kaybolmaz
+function migrateOldSave() {
+  const old = localStorage.getItem(LS_KEY);
+  if (!old) return;
+  try {
+    const data = JSON.parse(old);
+    const saves = getSaves();
+    const exists = Object.values(saves).some(s => s._savedAt && s._savedAt === data._savedAt);
+    if (!exists) {
+      const name = 'Önceki kayıt' + (data._savedAt ? ` (${data._savedAt})` : '');
+      saves[name] = data;
+      setSaves(saves);
+    }
+    localStorage.removeItem(LS_KEY); // yalnızca başarılı taşımadan sonra temizle
+  } catch (e) { /* parse hatası: eski kaydı SİLME, olduğu gibi bırak */ }
 }
 
-function loadSaved() {
-  const raw = localStorage.getItem(LS_KEY);
-  if (!raw) { alert('Henüz kayıtlı senaryo yok. Önce "+ Kaydet" butonuna bas.'); return; }
-  const data = JSON.parse(raw);
+function refreshSavedDropdown(selectName) {
+  const sel = document.getElementById('savedSelect');
+  if (!sel) return;
+  const saves = getSaves();
+  const names = Object.keys(saves);
+  sel.innerHTML = names.length
+    ? '<option value="">— kayıt seç —</option>' + names.map(n =>
+        `<option value="${n.replace(/"/g, '&quot;')}">${n}</option>`).join('')
+    : '<option value="">(kayıt yok)</option>';
+  if (selectName && saves[selectName]) sel.value = selectName;
+}
+
+function applyData(data) {
   document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn_saved').classList.add('active');
   Object.entries(data).forEach(([id, val]) => {
     if (id === '_savedAt') return;
     const el = document.getElementById(id);
@@ -1954,20 +1973,48 @@ function loadSaved() {
   render();
 }
 
-function updateSavedBtnLabel(savedAt) {
-  const btn = document.getElementById('btn_saved');
-  if (savedAt) btn.title = `Son kayıt: ${savedAt}`;
-  btn.style.borderColor = '#22c97a';
-  btn.style.color = '#22c97a';
+function saveScenario() {
+  const sel = document.getElementById('savedSelect');
+  const suggested = (sel && sel.value) ? sel.value : '';
+  const name = (prompt('Kayıt ismi:', suggested) || '').trim();
+  if (!name) return;
+  const saves = getSaves();
+  const overwrite = saves[name] && !confirm(`"${name}" zaten var. Üzerine yazılsın mı?`);
+  if (overwrite) return;
+  saves[name] = getAllInputValues();
+  setSaves(saves);
+  refreshSavedDropdown(name);
+
+  const btn = event.target;
+  const orig = btn.textContent;
+  btn.textContent = '✓ Kaydedildi';
+  btn.style.background = '#22c97a';
+  setTimeout(() => { btn.textContent = orig; btn.style.background = '#4a6cf7'; }, 1400);
 }
 
-// Sayfa yüklendiğinde kayıtlı senaryo varsa label'ı güncelle
-(function checkExistingSave() {
-  const raw = localStorage.getItem(LS_KEY);
-  if (raw) {
-    try { updateSavedBtnLabel(JSON.parse(raw)._savedAt); } catch(e) {}
-  }
-})();
+function loadSelected() {
+  const sel = document.getElementById('savedSelect');
+  const name = sel ? sel.value : '';
+  if (!name) { alert('Önce listeden bir kayıt seç.'); return; }
+  const saves = getSaves();
+  if (!saves[name]) { alert('Kayıt bulunamadı.'); return; }
+  applyData(saves[name]);
+}
+
+function deleteSelected() {
+  const sel = document.getElementById('savedSelect');
+  const name = sel ? sel.value : '';
+  if (!name) { alert('Önce silinecek kaydı seç.'); return; }
+  if (!confirm(`"${name}" kaydı silinsin mi?`)) return;
+  const saves = getSaves();
+  delete saves[name];
+  setSaves(saves);
+  refreshSavedDropdown();
+}
+
+// Açılışta: eski kaydı taşı + dropdown'u doldur
+migrateOldSave();
+refreshSavedDropdown();
 
 // ─── EVENT LISTENERS ─────────────────────────────────────────────────────
 document.querySelectorAll('input').forEach(el => {

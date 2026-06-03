@@ -1217,9 +1217,9 @@
         <div class="kpi-sub" id="kpi_debtService">Yıllık taksit: —</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Geri Dönüş (CAPEX)</div>
+        <div class="kpi-label">Geri Dönüş (Cepten Çıkan)</div>
         <div class="kpi-value" id="kpi_payback">—</div>
-        <div class="kpi-sub" id="kpi_paybackSub">Özkaynak geri dönüşü: —</div>
+        <div class="kpi-sub" id="kpi_paybackSub">Kümülatif nakit başabaş</div>
       </div>
     </div>
 
@@ -1643,12 +1643,21 @@ function render() {
     ? `Grace ${d.finGrace}y: ${fmtTL(d.graceAnnualInterest)} / Sonra: ${fmtTL(d.annualDebtService)}`
     : `Yıllık taksit: ${fmtTL(d.annualDebtService)}`;
 
+  // Geri dönüş = CEPTEN ÇIKAN paranın dönüşü: kümülatif nakit akışı (Y0=-cashNeeded,
+  // taksit dahil) ilk kez pozitife geçtiği yıl (lineer interpolasyonla)
+  let beYear = Infinity;
+  for (let i = 1; i < d.years.length; i++) {
+    if (d.years[i].kumulatif >= 0) {
+      const prev = d.years[i-1].kumulatif, cur = d.years[i].kumulatif;
+      beYear = (i - 1) + (cur !== prev ? (-prev) / (cur - prev) : 0);
+      break;
+    }
+  }
   const kpiPb = document.getElementById('kpi_payback');
-  const pb = d.payback;
-  kpiPb.textContent = isFinite(pb) ? pb.toFixed(1) + ' yıl' : '∞';
-  kpiPb.className = 'kpi-value ' + (pb <= 5 ? 'positive' : pb <= 8 ? 'warn' : 'negative');
-  document.getElementById('kpi_paybackSub').textContent = 
-    isFinite(d.paybackWithDebt) ? `Özkaynak geri dönüşü: ${d.paybackWithDebt.toFixed(1)} yıl` : 'Özkaynak geri dönüşü: ∞';
+  kpiPb.textContent = isFinite(beYear) ? beYear.toFixed(1) + ' yıl' : '10+ yıl';
+  kpiPb.className = 'kpi-value ' + (isFinite(beYear) && beYear <= 5 ? 'positive' : (isFinite(beYear) && beYear <= 8 ? 'warn' : 'negative'));
+  document.getElementById('kpi_paybackSub').textContent =
+    `Cepten çıkan ${fmtTL(d.cashNeeded)} · kümülatif başabaş`;
 
   // Cebimde ne kadar olmalı
   document.getElementById('kpi_cashNeeded').textContent = fmtTL(d.cashNeeded);

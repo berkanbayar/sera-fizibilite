@@ -821,11 +821,11 @@
       <div class="section-title">Gider Kalemleri — Isıtma (Katı Yakıt)</div>
       <div class="param-row">
         <div>
-          <div class="param-label">Yıllık ısı enerjisi ihtiyacı</div>
-          <span class="param-sublabel">Elmadağ (~1.100 m) soğuk iklim; ~500 kWh/m²</span>
+          <div class="param-label">Yıllık kömür tüketimi</div>
+          <span class="param-sublabel">Gerçek/beklenen tüketim → ısı ihtiyacı türetilir</span>
         </div>
-        <span class="param-unit">GWh/yıl</span>
-        <input type="number" class="param-input" id="e_heatGwh" value="10" step="0.5">
+        <span class="param-unit">ton/yıl</span>
+        <input type="text" inputmode="numeric" class="param-input grouped" id="e_coalTon" value="400">
       </div>
       <div class="param-row">
         <div>
@@ -868,10 +868,18 @@
       </div>
       <div class="param-row">
         <div>
-          <div class="param-label">Elektrik (pompalar, fan, soğuk oda)</div>
+          <div class="param-label">Elektrik tüketimi</div>
+          <span class="param-sublabel">Pompa, fan, soğuk oda, kontrol</span>
         </div>
-        <span class="param-unit">TL/yıl</span>
-        <input type="text" inputmode="numeric" class="param-input wide grouped" id="e_electric" value="2.500.000">
+        <span class="param-unit">kWh/yıl</span>
+        <input type="text" inputmode="numeric" class="param-input wide grouped" id="e_elecKwh" value="189.000">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Elektrik birim fiyatı</div>
+        </div>
+        <span class="param-unit">TL/kWh</span>
+        <input type="number" class="param-input" id="e_elecRate" value="4.5" step="0.1">
       </div>
     </div>
 
@@ -1356,21 +1364,24 @@ function calculate() {
   const tomatoPrice = g('r_tomatoPrice');
   const grade2Price = g('r_grade2Price');
 
-  // ── ISITMA (KATI YAKIT / KÖMÜR)
-  const heatGwh = g('e_heatGwh');
-  const heatKwh = heatGwh * 1e6;
+  // ── ISITMA (KATI YAKIT / KÖMÜR) — tüketim girdi, ısı ihtiyacı türetilir
+  const coalTon = g('e_coalTon');               // yıllık kömür tüketimi (ton)
+  const coalKg  = coalTon * 1000;
   const coalPriceTon = g('e_coalPriceTon');     // TL/ton
   const coalCalorie  = g('e_coalCalorie');      // kcal/kg (alt ısıl değer)
   const coalEff      = g('e_coalEff') / 100;    // kazan verimi
   // 1 kg kömürden faydalı ısı = calorie*verim kcal = (.../860) kWh
   const usefulKwhPerKg = (coalCalorie * coalEff) / 860;
-  const coalRate = usefulKwhPerKg > 0 ? (coalPriceTon / 1000) / usefulKwhPerKg : 0; // TL/kWh ısı
-  const coalKg   = usefulKwhPerKg > 0 ? heatKwh / usefulKwhPerKg : 0;
-  const coalTon  = coalKg / 1000;
+  const coalRate = usefulKwhPerKg > 0 ? (coalPriceTon / 1000) / usefulKwhPerKg : 0; // TL/kWh ısı (gösterge)
+  const heatKwh = coalKg * usefulKwhPerKg;       // türetilen yıllık ısı (kWh)
+  const heatGwh = heatKwh / 1e6;                  // GWh (gösterge)
   // Kazan kapasitesi (tepe güç): 1 kcal/h = 1,163 W
   const boilerCapKcal = g('e_boilerCapacity');     // kcal/h
   const boilerMW = boilerCapKcal * 1.163 / 1e6;    // MW
-  const electric = g('e_electric');
+  // Elektrik: tüketim (kWh) × birim fiyat (TL/kWh)
+  const elecKwh  = g('e_elecKwh');
+  const elecRate = g('e_elecRate');
+  const electric = elecKwh * elecRate;
 
   const fertPerM2 = g('c_fertilizer');
   const seedPerM2 = g('c_seed');
@@ -1448,7 +1459,7 @@ function calculate() {
   const rev_total = rev_grade1 + rev_grade2;
 
   // ── ENERGY (sadece katı yakıt + elektrik)
-  const cost_coal = heatKwh * coalRate;
+  const cost_coal = coalTon * coalPriceTon;   // ton × TL/ton (doğrudan)
   const cost_energy = cost_coal + electric;
 
   // ── INPUTS

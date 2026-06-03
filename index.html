@@ -1056,11 +1056,11 @@
       </div>
       <div class="param-row">
         <div>
-          <div class="param-label">Köprü finansman faizi</div>
-          <span class="param-sublabel">Hibe tahsil edilene dek köprü maliyeti (yıllık)</span>
+          <div class="param-label">Köprü kredi faizi</div>
+          <span class="param-sublabel">Hibe payı krediyle finanse edilir; kredi faiziyle aynı tut (~%8)</span>
         </div>
         <span class="param-unit">%</span>
-        <input type="number" class="param-input" id="grant_bridgeRate" value="45" step="5">
+        <input type="number" class="param-input" id="grant_bridgeRate" value="8" step="1">
       </div>
       <div class="param-row" style="background:rgba(34,201,122,0.08);border-radius:6px;padding:8px;">
         <div>
@@ -1523,11 +1523,11 @@ function calculate() {
     ? equity / (net_profit - annualDebtService)
     : Infinity;
 
-  // ── BAŞLANGIÇ NAKİT İHTİYACI (hibe köprüsü dahil)
-  // = Özkaynak + hibe köprüsü (peşin harcanır, sonra hakedişle döner) + köprü maliyeti
-  //   + inşaat dönemi OPEX tamponu + işletme sermayesi
+  // ── BAŞLANGIÇ NAKİT İHTİYACI (hibe köprüsü KREDİYLE finanse edilir, cepten DEĞİL)
+  // = Özkaynak + inşaat dönemi OPEX tamponu + işletme sermayesi
+  //   (hibe payını kredi köprüler; köprü faizi işletme gideri olarak nakit akışında)
   const constructionOpex = (opex_total / 12) * constructionMonths * 0.3;
-  const cashNeeded = equity + grantAmount + bridgeCost + constructionOpex + workingCap;
+  const cashNeeded = equity + constructionOpex + workingCap;
 
   const infRev  = g('inf_rev')  / 100;   // gelir fiyat artışı
   const infCost = g('inf_cost') / 100;   // maliyet artışı
@@ -1540,11 +1540,11 @@ function calculate() {
 
   for (let yr = 0; yr <= 10; yr++) {
     if (yr === 0) {
-      // Kuruluşta tüm peşin çıkış: özkaynak + hibe köprüsü (peşin harcanır) + inşaat + işl. sermayesi
-      cumulativeCash = -(equity + grantAmount + constructionOpex + workingCap);
+      // Kuruluşta cepten çıkış: özkaynak + inşaat + işl. sermayesi (hibe payını KREDİ köprüler)
+      cumulativeCash = -(equity + constructionOpex + workingCap);
       years.push({ yr: 'Y0', gelir: 0, opex: 0, net: 0, taksit: 0, sgkDestek: 0, grantInflow: 0,
         freeCash: 0, kumulatif: cumulativeCash, realFreeCash: 0, kumulatifReal: cumulativeCash,
-        revFactor: 1, costFactor: 1, note: 'Kuruluş + hibe köprüsü' });
+        revFactor: 1, costFactor: 1, note: 'Kuruluş (özkaynak)' });
     } else {
       const revFactor  = Math.pow(1 + infRev,  yr - 1);
       const costFactor = Math.pow(1 + infCost, yr - 1);
@@ -1564,8 +1564,8 @@ function calculate() {
         yTaksit = -annualDebtService;
       }
 
-      // 1. yıl: hibe hakedişle geri döner (köprü maliyeti düşülür)
-      const yGrantInflow = (yr === 1) ? (grantAmount - bridgeCost) : 0;
+      // 1. yıl: hibe gelir ve köprü kredisini kapatır (nakit nötr); sadece köprü faizi gider
+      const yGrantInflow = (yr === 1) ? (-bridgeCost) : 0;
 
       const yFreeCash = yNet + yTaksit + yGrantInflow;
       const yRealFree = yFreeCash / deflFactor;
@@ -1574,7 +1574,7 @@ function calculate() {
 
       const notes = [];
       if (yr === 1) notes.push(`%${Math.round(rampup*100)} kap.`);
-      if (yGrantInflow > 0) notes.push(`hibe +${fmt(grantAmount)}`);
+      if (yr === 1 && bridgeCost > 0) notes.push(`köprü faizi -${fmt(bridgeCost)}`);
       if (yr <= finGrace) notes.push('grace');
       if (ySgkSaving > 0) notes.push('SGK↓');
       if (yNet < 0) notes.push('⚠ zarar');
@@ -1802,7 +1802,7 @@ function render() {
     stHtml += '</tr>';
   });
   stHtml += '</table></div>';
-  stHtml += `<div style="margin-top:8px;font-size:9px;color:var(--text3)">Değerler: Yıllık Net Kâr (M TL). Turuncu = mevcut senaryo. Enerji karışımı mevcut slider değerine göre hesaplanmıştır.</div>`;
+  stHtml += `<div style="margin-top:8px;font-size:9px;color:var(--text3)">Değerler: Yıllık Net Kâr (M TL). Turuncu = mevcut senaryo. Diğer giderler sabit tutulmuştur.</div>`;
   document.getElementById('sensitivityTable').innerHTML = stHtml;
 
   // ── YIL YIL NAKİT AKIŞI
@@ -1818,14 +1818,10 @@ function render() {
       <span style="font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:var(--thermal);letter-spacing:-0.02em;">${fmtTL(d.cashNeeded)}</span>
     </div>
 
-    <div class="note-grid-3" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;">
+    <div class="note-grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
       <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px;">
         <div style="font-size:9px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Özkaynak</div>
         <div style="font-size:16px;font-weight:600;color:var(--text);">${fmtTL(d.equity)}</div>
-      </div>
-      <div style="background:rgba(34,201,122,0.06);border:1px solid rgba(34,201,122,0.18);border-radius:8px;padding:12px 14px;">
-        <div style="font-size:9px;color:#22c97a;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Hibe Köprüsü</div>
-        <div style="font-size:16px;font-weight:600;color:#22c97a;">${fmtTL(d.grantAmount)}</div>
       </div>
       <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px;">
         <div style="font-size:9px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">İnşaat Hazırlık</div>
@@ -1835,6 +1831,9 @@ function render() {
         <div style="font-size:9px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">İşletme Tamponu</div>
         <div style="font-size:16px;font-weight:600;color:var(--text);">${fmtTL(d.workingCap)}</div>
       </div>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:12px;font-family:'IBM Plex Mono',monospace;">
+      ℹ️ Hibe payı (${fmtTL(d.grantAmount)}) krediyle köprülenir — cepten çıkmaz; 8 ay sonra hakedişle kredi kapanır. Köprü faizi: ${fmtTL(d.bridgeCost)} (işletmeden).
     </div>
 
     <div class="note-grid-2" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:11px;color:var(--text3);">

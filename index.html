@@ -1205,6 +1205,10 @@
       <button class="scenario-btn" onclick="loadSelected()" style="border-color:#4a6cf7;color:#4a6cf7;" title="Seçili kaydı yükle">📂 Yükle</button>
       <button class="scenario-btn" onclick="deleteSelected()" style="border-color:#f04040;color:#f04040;" title="Seçili kaydı sil">🗑</button>
       <button onclick="saveScenario()" style="margin-left:2px;padding:7px 14px;background:#4a6cf7;border:none;border-radius:6px;color:#fff;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;font-weight:600;letter-spacing:0.04em;transition:all 0.2s;box-shadow:0 2px 8px rgba(74,108,247,0.2);" onmouseover="this.style.background='#5b7bff'" onmouseout="this.style.background='#4a6cf7'" title="Mevcut ayarları isimle kaydet">+ Kaydet</button>
+      <span style="width:1px;height:22px;background:var(--border2);margin:0 4px;"></span>
+      <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="importSavesFile(this)">
+      <button class="scenario-btn" onclick="document.getElementById('importFile').click()" style="border-color:#22c97a;color:#22c97a;" title="JSON dosyasından senaryo içe aktar">📥 İçe</button>
+      <button class="scenario-btn" onclick="exportSaves()" style="border-color:#22c97a;color:#22c97a;" title="Tüm kayıtları JSON dosyası olarak indir (yedek)">📤 Dışa</button>
     </div>
 
     <!-- KPI STRIP - ROW 1: Kâr & Geri Dönüş -->
@@ -2010,6 +2014,41 @@ function deleteSelected() {
   delete saves[name];
   setSaves(saves);
   refreshSavedDropdown();
+}
+
+// Tüm kayıtları JSON dosyası olarak indir (kalıcı yedek — localStorage'a bağlı kalmaz)
+function exportSaves() {
+  const saves = getSaves();
+  if (Object.keys(saves).length === 0) { alert('Dışa aktarılacak kayıt yok.'); return; }
+  const blob = new Blob([JSON.stringify(saves, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sera-senaryolar.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(a.href);
+}
+
+// JSON dosyasından senaryo içe aktar (mevcutlarla birleştirir, üzerine yazar)
+function importSavesFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const incoming = JSON.parse(e.target.result);
+      if (typeof incoming !== 'object' || Array.isArray(incoming)) throw new Error('Beklenen format: {isim: {...}}');
+      const saves = getSaves();
+      let n = 0;
+      Object.entries(incoming).forEach(([name, data]) => {
+        if (data && typeof data === 'object') { saves[name] = data; n++; }
+      });
+      setSaves(saves);
+      refreshSavedDropdown();
+      alert(n + ' senaryo içe aktarıldı. Dropdown\'dan seçip "📂 Yükle" ile aç.');
+    } catch (err) { alert('Dosya okunamadı: ' + err.message); }
+    input.value = '';
+  };
+  reader.readAsText(file);
 }
 
 // Açılışta: eski kaydı taşı + dropdown'u doldur

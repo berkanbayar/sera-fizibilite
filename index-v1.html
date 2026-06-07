@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ankara Elmadağ — Topraksız Sera Fizibilite v2 (Gerçek Teklif + CO₂)</title>
+<title>Ankara Elmadağ — Topraksız Tarım Serası Fizibilite Simülatörü</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap');
@@ -729,10 +729,10 @@
 <div class="header">
   <button class="menu-btn" id="menuBtn" onclick="toggleDrawer()" title="Parametreler">☰</button>
   <div class="header-left">
-    <h1>🍅 Ankara Elmadağ — Topraksız Sera Fizibilite <span style="color:#22c97a">v2</span></h1>
-    <p>Gerçek teklif bazlı (anahtar teslim $76/m²) · CO₂ gübreleme modülü · Katı Yakıt Isıtma</p>
+    <h1>🍅 Ankara Elmadağ — Topraksız Tarım Serası Fizibilite Simülatörü</h1>
+    <p>Camlı Sera · Topraksız Salkım Domates · Katı Yakıt Isıtma · Senaryolar gerçek zamanlı güncelleniyor</p>
   </div>
-  <div class="header-badge" style="border-color:#22c97a;color:#22c97a;">v2 · Gerçek Teklif</div>
+  <div class="header-badge">v3.0 · 2026</div>
 </div>
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 
@@ -785,49 +785,6 @@
         </div>
         <span class="param-unit">%</span>
         <input type="number" class="param-input" id="p_waste" value="8" step="1" min="0" max="50">
-      </div>
-    </div>
-
-    <!-- CO2 GÜBRELEME -->
-    <div class="section">
-      <div class="section-title">🌱 CO₂ Gübreleme (opsiyonel)</div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">CO₂ gübrelemesi aktif</div>
-          <span class="param-sublabel">450–600 ppm; verimi artırır</span>
-        </div>
-        <span class="param-unit">✓</span>
-        <input type="checkbox" id="co2_enabled" style="width:20px;height:20px;">
-      </div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">Verim artışı</div>
-          <span class="param-sublabel">Analiz: ~%12 ek rekolte</span>
-        </div>
-        <span class="param-unit">%</span>
-        <input type="number" class="param-input" id="co2_yieldBoost" value="12" step="1">
-      </div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">CO₂ tüketimi</div>
-          <span class="param-sublabel">Sıvı CO₂; analiz: ~28,5 ton/dönüm/yıl</span>
-        </div>
-        <span class="param-unit">ton/dön</span>
-        <input type="number" class="param-input" id="co2_tonPerDekar" value="28.5" step="0.5">
-      </div>
-      <div class="param-row">
-        <div>
-          <div class="param-label">CO₂ fiyatı</div>
-        </div>
-        <span class="param-unit">USD/ton</span>
-        <input type="number" class="param-input" id="co2_priceUsd" value="160" step="10">
-      </div>
-      <div class="param-row" style="background:rgba(34,201,122,0.07);border-radius:6px;padding:8px;">
-        <div>
-          <div class="param-label" style="color:#22c97a;">⇒ CO₂ net katkısı</div>
-          <span class="param-sublabel" id="co2_netNote" style="color:#22c97a;">kapalı</span>
-        </div>
-        <span class="param-unit" style="color:#22c97a;font-weight:700;font-size:13px;" id="co2_netDisplay">—</span>
       </div>
     </div>
 
@@ -1026,14 +983,24 @@
       <div class="section-title">CAPEX & Arazi</div>
       <div class="param-row">
         <div>
-          <div class="param-label">Sera anahtar teslim (tam donanım)</div>
-          <span class="param-sublabel">İska teklifi: plastik+ısıtma+kazan+otomasyon $76/m² · cam ~150</span>
+          <div class="param-label">Sera yapı + örtü (camlı)</div>
+          <span class="param-sublabel">Venlo tipi camlı; piyasa 110–160 USD/m²</span>
         </div>
         <span class="param-unit">USD/m²</span>
-        <input type="number" class="param-input" id="cap_greenhouse" value="76" step="1">
+        <input type="number" class="param-input" id="cap_greenhouse" value="110" step="5">
       </div>
       <div class="param-row">
-        <div><div class="param-label">Paketleme binası + soğuk oda</div><span class="param-sublabel">Teklif dışı; ayrı yapı</span></div>
+        <div><div class="param-label">Kömür kazan dairesi + sistem</div><span class="param-sublabel">Kazan, stoker, silo, baca, dağıtım</span></div>
+        <span class="param-unit">TL</span>
+        <input type="text" inputmode="numeric" class="param-input wide grouped" id="cap_boiler" value="18.000.000">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Topraksız sistem + otomasyon</div></div>
+        <span class="param-unit">USD/m²</span>
+        <input type="number" class="param-input" id="cap_hydro" value="22" step="1">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Paketleme binası + soğuk oda</div></div>
         <span class="param-unit">TL</span>
         <input type="text" inputmode="numeric" class="param-input wide grouped" id="cap_packing" value="12.000.000">
       </div>
@@ -1456,7 +1423,9 @@ function calculate() {
   const mgmtSalary = g('hr_mgmtSalary');
   const burden = g('hr_burden') / 100;
 
-  const capGH = g('cap_greenhouse');   // anahtar teslim tam donanım (ısıtma+sistem dahil) USD/m²
+  const capGH = g('cap_greenhouse');
+  const capHydro = g('cap_hydro');
+  const capBoiler = g('cap_boiler');
   const capPacking = g('cap_packing');
   const capUSD = g('cap_usdtl');
   const capLand = g('cap_landTotal');
@@ -1486,22 +1455,10 @@ function calculate() {
   const rampup = g('fin_rampup') / 100;
   const workingCap = g('fin_workingCap');
 
-  // ── CO2 GÜBRELEME (verim artışı + maliyet)
-  const co2Enabled = document.getElementById('co2_enabled').checked;
-  const co2Boost = g('co2_yieldBoost') / 100;
-  const co2TonPerDekar = g('co2_tonPerDekar');
-  const co2PriceUsd = g('co2_priceUsd');
-  const effYield = co2Enabled ? yieldKg * (1 + co2Boost) : yieldKg;
-  const co2Cost = co2Enabled ? co2TonPerDekar * (area / 1000) * co2PriceUsd * capUSD : 0;
-
-  // ── PRODUCTION (CO2 etkili verim)
-  const totalKg = area * effYield;
+  // ── PRODUCTION
+  const totalKg = area * yieldKg;
   const grade1Kg = totalKg * (1 - wastePct);
   const grade2Kg = totalKg * wastePct;
-  // CO2'nin ek gelir katkısı (verim farkından, komisyon sonrası net)
-  const co2ExtraKg = co2Enabled ? area * (effYield - yieldKg) : 0;
-  const co2ExtraRev = co2ExtraKg * tomatoPrice * (1 - commission) * (1 - wastePct)
-                    + co2ExtraKg * grade2Price * (1 - commission) * wastePct;
 
   // ── REVENUE
   const rev_grade1 = grade1Kg * tomatoPrice * (1 - commission);
@@ -1527,16 +1484,16 @@ function calculate() {
   // ── LAND (annual)
   const landAnnual = capLand / capLandPeriod;
 
-  // ── TOTAL OPEX (CO2 maliyeti dahil)
-  const opex_total = cost_energy + cost_inputs + cost_packaging + cost_personnel + cost_other + landAnnual + co2Cost;
+  // ── TOTAL OPEX
+  const opex_total = cost_energy + cost_inputs + cost_packaging + cost_personnel + cost_other + landAnnual;
 
   // ── NET
   const net_profit = rev_total - opex_total;
   const margin = rev_total > 0 ? (net_profit / rev_total) * 100 : 0;
 
   // ── CAPEX
-  const usdCosts = capGH * area;   // tam donanım sera (ısıtma+kazan+sistem dahil)
-  const cap_base = usdCosts * capUSD + capPacking + capLand;
+  const usdCosts = (capGH + capHydro) * area;
+  const cap_base = usdCosts * capUSD + capBoiler + capPacking + capLand;
   const cap_total = cap_base * (1 + contingency);
   const cap_perM2 = cap_total / area;
   const capUSDperM2 = cap_perM2 / capUSD;
@@ -1648,7 +1605,6 @@ function calculate() {
     debt, equity, annualDebtService, payback, paybackWithDebt,
     coalRate, coalTon, heatGwh, usefulKwhPerKg, boilerMW, boilerCapKcal,
     workers, workersPeak, workersLow, avgDensity,
-    co2Enabled, co2Cost, co2ExtraRev, co2ExtraKg, effYield,
     capUSD,
     kdvSaving, effectiveCapex, sgkAnnualSaving, cashNeeded, workingCap, constructionOpex,
     grantAmount, bridgeCost,
@@ -1676,22 +1632,6 @@ function render() {
   const hrCountNote = document.getElementById('hr_workerCountNote');
   if (hrCountDisp) hrCountDisp.textContent = `${Math.round(d.workers)} kişi`;
   if (hrCountNote) hrCountNote.textContent = `Kış ${Math.round(d.workersLow)} · zirve(Eyl) ${Math.round(d.workersPeak)} · ort. ${d.avgDensity.toFixed(2)} kişi/dön`;
-
-  // CO2 net katkısı
-  const co2Disp = document.getElementById('co2_netDisplay');
-  const co2Note = document.getElementById('co2_netNote');
-  if (co2Disp && co2Note) {
-    if (d.co2Enabled) {
-      const co2Net = d.co2ExtraRev - d.co2Cost;
-      co2Disp.textContent = (co2Net >= 0 ? '+' : '') + fmtTL(co2Net);
-      co2Disp.style.color = co2Net >= 0 ? '#22c97a' : '#f04040';
-      co2Note.textContent = `Ek gelir ${fmtTL(d.co2ExtraRev)} − CO₂ mal. ${fmtTL(d.co2Cost)} · +${fmt(d.co2ExtraKg)} kg`;
-    } else {
-      co2Disp.textContent = 'kapalı';
-      co2Disp.style.color = '#64748b';
-      co2Note.textContent = 'CO₂ gübrelemesi devre dışı';
-    }
-  }
 
   // KPIs
   const kpiProfit = document.getElementById('kpi_netProfit');
@@ -1754,7 +1694,6 @@ function render() {
     { label: '  Personel (işçi + teknik/yönetici)', value: d.cost_personnel, cls: 'indent' },
     { label: '  Genel yönetim + bakım + lojistik + su', value: d.cost_other, cls: 'indent' },
     { label: '  Arazi kira (yıllık pay)', value: d.landAnnual, cls: 'indent' },
-    ...(d.co2Enabled ? [{ label: '  CO₂ gübreleme', value: d.co2Cost, cls: 'indent' }] : []),
     { label: 'TOPLAM GİDER', value: d.opex_total, cls: 'total-row' },
     { label: '', value: null },
     { label: '⚡ NET KÂR / ZARAR', value: d.net_profit, cls: 'total-row' },
@@ -1982,8 +1921,8 @@ function setScenario(s) {
 }
 
 // ─── LOCALSTORAGE: İSİMLE ÇOKLU KAYIT ─────────────────────────────────────
-const LS_KEY = 'sera_fizibilite_v30_unused';      // v2'de migration yok (v1'den ayrı)
-const SAVES_KEY = 'sera_fizibilite_saves_v2';     // v2 ayrı kayıt deposu (v1 ile karışmaz)
+const LS_KEY = 'sera_fizibilite_v30';            // eski tek kayıt (migration kaynağı)
+const SAVES_KEY = 'sera_fizibilite_saves_v1';     // yeni: { isim: {girdiler, _savedAt} }
 
 function getSaves() {
   try { return JSON.parse(localStorage.getItem(SAVES_KEY)) || {}; } catch (e) { return {}; }

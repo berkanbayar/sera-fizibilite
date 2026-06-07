@@ -1,0 +1,7 @@
+# Gizli/büyük kaynak belgeleri (repoya girmesin)
+*.pdf
+maliyet analizi.xlsx
+kurtarilan-kayitlar.json
+
+# Office geçici kilit dosyaları
+~$*

@@ -1,0 +1,2134 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ankara Elmadağ — Topraksız Sera Fizibilite v2 (Gerçek Teklif + CO₂)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg: #0a0d0f;
+    --bg2: #111518;
+    --bg3: #181d22;
+    --border: #1f2a30;
+    --border2: #2a3840;
+    --thermal: #ff6b1a;
+    --thermal2: #ff9a4d;
+    --coal: #4a5568;
+    --coal2: #718096;
+    --green: #22c97a;
+    --red: #f04040;
+    --blue: #3a9fd4;
+    --text: #e8edf0;
+    --text2: #94a3b8;
+    --text3: #64748b;
+    --accent: #ff6b1a;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.25);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.35);
+    --radius: 8px;
+    --radius-sm: 5px;
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(180deg, var(--bg2) 0%, rgba(17,21,24,0.95) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-md);
+  }
+  .header-left h1 {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--thermal);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .header-left p {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'IBM Plex Mono', monospace;
+    margin-top: 4px;
+    letter-spacing: 0.02em;
+  }
+  .header-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text2);
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    transition: border-color var(--transition);
+  }
+  .header-badge:hover {
+    border-color: var(--thermal);
+  }
+
+  /* LAYOUT */
+  .main {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    min-height: calc(100vh - 65px);
+  }
+
+  /* LEFT PANEL */
+  .left-panel {
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 0;
+  }
+
+  .section {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 24px;
+    transition: background var(--transition);
+  }
+  .section:hover {
+    background: rgba(255,255,255,0.01);
+  }
+  .section-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+  }
+  .section-title::before {
+    content: '';
+    width: 3px;
+    height: 14px;
+    background: linear-gradient(180deg, var(--thermal) 0%, var(--thermal2) 100%);
+    border-radius: 2px;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  /* ENERGY SLIDER  " hero element */
+  .energy-hero {
+    background: linear-gradient(135deg, #0f1a20 0%, #0a1015 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .energy-hero::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,107,26,0.04) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .energy-hero-title {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 14px;
+  }
+  .energy-pct-display {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .thermal-pct {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 52px;
+    font-weight: 300;
+    color: var(--thermal);
+    line-height: 1;
+    transition: color 0.3s;
+    letter-spacing: -0.03em;
+  }
+  .thermal-unit {
+    font-size: 20px;
+    color: var(--text3);
+  }
+  .coal-pct-text {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--coal2);
+    margin-bottom: 16px;
+  }
+
+  .energy-bar {
+    height: 8px;
+    background: var(--coal);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+  }
+  .energy-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--thermal) 0%, var(--thermal2) 100%);
+    border-radius: 4px;
+    transition: width 0.25s ease-out;
+    box-shadow: 0 0 8px rgba(255,107,26,0.3);
+  }
+
+  .slider {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: var(--border2);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--thermal);
+    cursor: pointer;
+    border: 3px solid var(--bg);
+    box-shadow: 0 0 0 2px var(--thermal), 0 2px 8px rgba(255,107,26,0.3);
+    transition: all var(--transition);
+  }
+  .slider::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 0 4px rgba(255,107,26,0.3), 0 4px 12px rgba(255,107,26,0.4);
+    transform: scale(1.1);
+  }
+  .slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--thermal);
+    cursor: pointer;
+    border: 3px solid var(--bg);
+    box-shadow: 0 0 0 2px var(--thermal);
+  }
+
+  /* PARAM ROW */
+  .param-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 6px;
+    border-bottom: 1px solid rgba(20,26,31,0.8);
+    gap: 10px;
+    border-radius: var(--radius-sm);
+    transition: background var(--transition);
+  }
+  .param-row:hover {
+    background: rgba(255,255,255,0.015);
+  }
+  .param-row:last-child { border-bottom: none; }
+  .param-label {
+    font-size: 12.5px;
+    color: var(--text2);
+    flex: 1;
+    min-width: 0;
+    line-height: 1.4;
+  }
+  .param-unit {
+    font-size: 10px;
+    color: var(--text3);
+    font-family: 'IBM Plex Mono', monospace;
+    white-space: nowrap;
+    margin-right: 6px;
+    min-width: 36px;
+    text-align: right;
+  }
+  .param-input {
+    width: 100px;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 7px 10px;
+    border-radius: var(--radius-sm);
+    text-align: right;
+    outline: none;
+    transition: all var(--transition);
+    flex-shrink: 0;
+  }
+  .param-input:hover {
+    border-color: var(--text3);
+  }
+  .param-input:focus {
+    border-color: var(--thermal);
+    box-shadow: 0 0 0 3px rgba(255,107,26,0.12);
+    background: rgba(255,107,26,0.03);
+  }
+  .param-input.wide { width: 120px; }
+
+  /* SUBLABEL */
+  .param-sublabel {
+    font-size: 10px;
+    color: var(--text3);
+    font-family: 'IBM Plex Mono', monospace;
+    margin-top: 3px;
+    display: block;
+    opacity: 0.8;
+    line-height: 1.3;
+  }
+
+  /* RIGHT PANEL */
+  .right-panel {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background: var(--bg);
+  }
+
+  /* KPI STRIP */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-bottom: 1px solid var(--border);
+  }
+  .kpi-strip-row2 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, #0d1318 0%, #0a0d0f 100%);
+  }
+  .kpi-card {
+    padding: 20px 24px;
+    border-right: 1px solid var(--border);
+    transition: background var(--transition);
+    position: relative;
+  }
+  .kpi-card:hover {
+    background: rgba(255,255,255,0.015);
+  }
+  .kpi-card:last-child { border-right: none; }
+  .kpi-card.highlight {
+    background: rgba(255,107,26,0.04);
+    border-right: 1px solid var(--border);
+  }
+  .kpi-card.highlight::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--thermal), var(--thermal2));
+  }
+  .kpi-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+  .kpi-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1;
+    transition: color 0.3s;
+    letter-spacing: -0.02em;
+  }
+  .kpi-sub {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    line-height: 1.4;
+  }
+  .positive { color: var(--green); }
+  .negative { color: var(--red); }
+  .neutral { color: var(--blue); }
+  .warn { color: var(--thermal); }
+
+  /* CONTENT GRID */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    flex: 1;
+  }
+
+  .chart-section {
+    padding: 24px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    transition: background var(--transition);
+  }
+  .chart-section:hover {
+    background: rgba(255,255,255,0.008);
+  }
+  .chart-section:nth-child(2) { border-right: none; }
+  .chart-section:nth-child(3) { border-right: none; border-bottom: none; }
+  .chart-section:nth-child(4) { border-bottom: none; }
+
+  .chart-title {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(31,42,48,0.5);
+  }
+  .chart-container {
+    position: relative;
+    height: 200px;
+  }
+
+  /* PNL TABLE */
+  .pnl-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+  .pnl-table tr {
+    border-bottom: 1px solid rgba(20,26,31,0.6);
+    transition: background var(--transition);
+  }
+  .pnl-table tr:hover {
+    background: rgba(255,255,255,0.015);
+  }
+  .pnl-table tr:last-child { border-bottom: none; }
+  .pnl-table td {
+    padding: 9px 6px;
+    color: var(--text2);
+    line-height: 1.4;
+  }
+  .pnl-table td:last-child {
+    text-align: right;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .pnl-table .total-row td {
+    color: var(--text);
+    font-weight: 600;
+    border-top: 2px solid var(--border2);
+    padding-top: 12px;
+    font-size: 13px;
+  }
+  .pnl-table .subtotal td {
+    color: var(--text);
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .pnl-table .indent td:first-child {
+    padding-left: 16px;
+    color: var(--text3);
+    font-size: 11px;
+  }
+
+  /* SCENARIO BADGES */
+  .scenario-strip {
+    display: flex;
+    gap: 8px;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .scenario-btn {
+    padding: 7px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border2);
+    background: var(--bg3);
+    color: var(--text2);
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+    user-select: none;
+  }
+  .scenario-btn:hover {
+    border-color: var(--thermal);
+    color: var(--thermal);
+    background: rgba(255,107,26,0.06);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(255,107,26,0.1);
+  }
+  .scenario-btn:active {
+    transform: translateY(0);
+  }
+  .scenario-btn.active {
+    background: var(--thermal);
+    border-color: var(--thermal);
+    color: #000;
+    font-weight: 600;
+    box-shadow: 0 2px 12px rgba(255,107,26,0.25);
+  }
+
+  /* ENERGY COST BREAKDOWN */
+  .energy-detail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .energy-detail-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+  .energy-detail-card:hover {
+    border-color: var(--border2);
+    box-shadow: var(--shadow-sm);
+  }
+  .edc-label { font-size: 10px; color: var(--text3); margin-bottom: 6px; letter-spacing: 0.04em; }
+  .edc-value { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; }
+  .edc-thermal { color: var(--thermal); }
+  .edc-coal { color: var(--coal2); }
+
+  /* FULL WIDTH TABLE SECTION */
+  .full-section {
+    grid-column: 1 / -1;
+    padding: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 7px; height: 7px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; transition: background 0.2s; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+  /* HAMBURGER BUTTON */
+  .menu-btn {
+    display: none;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-size: 18px;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all var(--transition);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .menu-btn:hover { background: var(--border2); border-color: var(--thermal); }
+  .menu-btn:active { transform: scale(0.95); }
+  .menu-btn.open { border-color: var(--thermal); color: var(--thermal); background: rgba(255,107,26,0.08); }
+
+  /* DRAWER OVERLAY */
+  .drawer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .drawer-overlay.visible { display: block; }
+
+  /* RESPONSIVE — tablet */
+  @media (max-width: 1100px) {
+    .main { grid-template-columns: 300px 1fr; }
+    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+    .kpi-strip-row2 { grid-template-columns: repeat(2, 1fr); }
+    .kpi-card:nth-child(2) { border-right: none; }
+    .kpi-card:nth-child(3) { border-top: 1px solid var(--border); }
+    .kpi-card:nth-child(3n) { border-right: none; }
+    .content-grid { grid-template-columns: 1fr; }
+    .chart-section { border-right: none !important; }
+  }
+
+  /* RESPONSIVE  " mobile */
+  @media (max-width: 720px) {
+    .header {
+      padding: 12px 16px;
+      gap: 10px;
+    }
+    .header-left h1 { font-size: 12px; }
+    .header-left p { display: none; }
+    .header-badge { display: none; }
+    .menu-btn { display: flex; }
+
+    .main {
+      display: block;
+      position: relative;
+    }
+
+    /* LEFT PANEL  ' Drawer */
+    .left-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 320px;
+      max-width: 88vw;
+      z-index: 300;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-right: 1px solid var(--border2);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-top: 56px;
+    }
+    .left-panel.open {
+      transform: translateX(0);
+      box-shadow: 8px 0 32px rgba(0,0,0,0.6);
+    }
+
+    /* Drawer close button */
+    .drawer-close {
+      display: flex;
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      color: var(--text2);
+      font-size: 16px;
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .right-panel {
+      min-height: calc(100vh - 56px);
+    }
+
+    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+    .kpi-strip-row2 { grid-template-columns: repeat(2, 1fr); }
+    .kpi-card { padding: 16px; }
+    .kpi-card.highlight::before { display: none; }
+    .kpi-value { font-size: 22px; }
+    .kpi-label { font-size: 9px; margin-bottom: 8px; }
+    .kpi-sub { font-size: 10px; }
+    #yearlyTable { min-width: 640px; font-size: 10px; }
+    #cashStartNote { font-size: 11px; line-height: 1.7; }
+    @media (max-width: 600px) {
+      #cashStartNote .note-grid-3 { grid-template-columns: 1fr 1fr !important; }
+      #cashStartNote .note-grid-2 { grid-template-columns: 1fr !important; }
+    }
+
+    .scenario-strip {
+      padding: 10px 14px;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      gap: 6px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .scenario-strip > span { display: none; }
+    .scenario-btn {
+      padding: 8px 14px;
+      font-size: 11px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .content-grid { grid-template-columns: 1fr; }
+    .chart-section {
+      border-right: none !important;
+      padding: 18px 16px;
+    }
+    .chart-container { height: 220px; }
+
+    .param-input {
+      width: 90px;
+      font-size: 13px;
+      padding: 8px 10px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .param-input.wide { width: 110px; }
+    .param-label { font-size: 12px; }
+    .section { padding: 16px 14px; }
+
+    .energy-hero { padding: 20px 16px; }
+    .thermal-pct { font-size: 42px; }
+
+    /* Sensitivity table mobile scroll */
+    #sensitivityTable { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Touch-friendly checkboxes */
+    input[type="checkbox"] {
+      width: 22px !important;
+      height: 22px !important;
+      cursor: pointer;
+    }
+  }
+
+  /* Drawer close button hidden on desktop */
+  .drawer-close { display: none; }
+
+  .sep {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border2), transparent);
+    margin: 12px 0;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-size: 8.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-left: 6px;
+    vertical-align: middle;
+    line-height: 1.5;
+  }
+  .tag-thermal { background: rgba(255,107,26,0.12); color: var(--thermal); border: 1px solid rgba(255,107,26,0.25); }
+  .tag-fixed { background: rgba(58,159,212,0.1); color: var(--blue); border: 1px solid rgba(58,159,212,0.2); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <button class="menu-btn" id="menuBtn" onclick="toggleDrawer()" title="Parametreler">☰</button>
+  <div class="header-left">
+    <h1>🍅 Ankara Elmadağ — Topraksız Sera Fizibilite <span style="color:#22c97a">v2</span></h1>
+    <p>Gerçek teklif bazlı (anahtar teslim $76/m²) · CO₂ gübreleme modülü · Katı Yakıt Isıtma</p>
+  </div>
+  <div class="header-badge" style="border-color:#22c97a;color:#22c97a;">v2 · Gerçek Teklif</div>
+</div>
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<div class="main">
+  <!-- LEFT PANEL -->
+  <div class="left-panel" id="leftPanel">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+
+    <!-- ISITMA ÖZETİ HERO (KATI YAKIT) -->
+    <div class="energy-hero">
+      <div class="energy-hero-title">🔥 Katı Yakıt (Kömür) Isıtma</div>
+      <div class="energy-pct-display">
+        <div class="thermal-pct edc-coal" id="coalTonDisplay" style="color:var(--coal2)">—</div>
+        <div class="thermal-unit">ton/yıl</div>
+      </div>
+      <div class="coal-pct-text" id="coalRateText">— TL/kWh ısı</div>
+      <div class="energy-detail">
+        <div class="energy-detail-card">
+          <div class="edc-label">Yıllık Kömür Gideri</div>
+          <div class="edc-value edc-coal" id="coalCostDisplay">—</div>
+        </div>
+        <div class="energy-detail-card">
+          <div class="edc-label">Isı Gideri / m²</div>
+          <div class="edc-value edc-thermal" id="heatPerM2Display">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ÜRETİM PARAMETRELERİ -->
+    <div class="section">
+      <div class="section-title">Üretim</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Sera alanı</div>
+        </div>
+        <span class="param-unit">m²</span>
+        <input type="number" class="param-input" id="p_area" value="20000">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Verim</div>
+          <span class="param-sublabel">Camlı sera, kömür ısıtmalı: ~50 kg/m²</span>
+        </div>
+        <span class="param-unit">kg/m²/yıl</span>
+        <input type="number" class="param-input" id="p_yield" value="50" step="1">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Fire / kalite kaybı</div>
+        </div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="p_waste" value="8" step="1" min="0" max="50">
+      </div>
+    </div>
+
+    <!-- CO2 GÜBRELEME -->
+    <div class="section">
+      <div class="section-title">🌱 CO₂ Gübreleme (opsiyonel)</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">CO₂ gübrelemesi aktif</div>
+          <span class="param-sublabel">450–600 ppm; verimi artırır</span>
+        </div>
+        <span class="param-unit">✓</span>
+        <input type="checkbox" id="co2_enabled" style="width:20px;height:20px;">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Verim artışı</div>
+          <span class="param-sublabel">Analiz: ~%12 ek rekolte</span>
+        </div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="co2_yieldBoost" value="12" step="1">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">CO₂ tüketimi</div>
+          <span class="param-sublabel">Sıvı CO₂; analiz: ~28,5 ton/dönüm/yıl</span>
+        </div>
+        <span class="param-unit">ton/dön</span>
+        <input type="number" class="param-input" id="co2_tonPerDekar" value="28.5" step="0.5">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">CO₂ fiyatı</div>
+        </div>
+        <span class="param-unit">USD/ton</span>
+        <input type="number" class="param-input" id="co2_priceUsd" value="160" step="10">
+      </div>
+      <div class="param-row" style="background:rgba(34,201,122,0.07);border-radius:6px;padding:8px;">
+        <div>
+          <div class="param-label" style="color:#22c97a;">⇒ CO₂ net katkısı</div>
+          <span class="param-sublabel" id="co2_netNote" style="color:#22c97a;">kapalı</span>
+        </div>
+        <span class="param-unit" style="color:#22c97a;font-weight:700;font-size:13px;" id="co2_netDisplay">—</span>
+      </div>
+    </div>
+
+    <!-- GELİR KALEMLERİ -->
+    <div class="section">
+      <div class="section-title">Gelir Kalemleri</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Salkım domates ort. satış</div>
+          <span class="param-sublabel">Hal bülteni: 40–80 TL/kg</span>
+        </div>
+        <span class="param-unit">TL/kg</span>
+        <input type="number" class="param-input" id="r_tomatoPrice" value="45" step="1">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">2. sınıf / fire satış fiyatı</div>
+          <span class="param-sublabel">Salça sanayine, daha düşük</span>
+        </div>
+        <span class="param-unit">TL/kg</span>
+        <input type="number" class="param-input" id="r_grade2Price" value="15" step="1">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Taşıma/komisyon kesintisi</div>
+        </div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="r_commission" value="10" step="1" min="0" max="30">
+      </div>
+    </div>
+
+    <!-- GİDER KALEMLERİ -->
+    <div class="section">
+      <div class="section-title">Gider Kalemleri — Isıtma (Katı Yakıt)</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Yıllık kömür tüketimi</div>
+          <span class="param-sublabel">Gerçek/beklenen tüketim → ısı ihtiyacı türetilir</span>
+        </div>
+        <span class="param-unit">ton/yıl</span>
+        <input type="text" inputmode="numeric" class="param-input grouped" id="e_coalTon" value="400">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Kazan kapasitesi (tepe güç)</div>
+          <span class="param-sublabel" id="boilerCapNote">4 Mkcal/h ≈ 4,65 MW</span>
+        </div>
+        <span class="param-unit">kcal/h</span>
+        <input type="text" inputmode="numeric" class="param-input wide grouped" id="e_boilerCapacity" value="4.000.000">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Kömür fiyatı</div>
+          <span class="param-sublabel">Linyit, teslim; güncel ~8.500 TL/ton</span>
+        </div>
+        <span class="param-unit">TL/ton</span>
+        <input type="text" inputmode="numeric" class="param-input wide grouped" id="e_coalPriceTon" value="8.500">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Kömür alt ısıl değeri</div>
+          <span class="param-sublabel">Linyit ~6.000 kcal/kg</span>
+        </div>
+        <span class="param-unit">kcal/kg</span>
+        <input type="number" class="param-input" id="e_coalCalorie" value="6000" step="250">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Kazan verimi</div>
+          <span class="param-sublabel">Faydalı ısı / yakıt enerjisi</span>
+        </div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="e_coalEff" value="75" step="5" min="30" max="95">
+      </div>
+      <div class="param-row" style="background:rgba(113,128,150,0.08);border-radius:6px;padding:8px;">
+        <div>
+          <div class="param-label" style="color:var(--coal2);">⇒ Türetilen kömür birim maliyeti</div>
+          <span class="param-sublabel" id="coalDerivedNote" style="color:var(--coal2);">—</span>
+        </div>
+        <span class="param-unit" style="color:var(--coal2);font-weight:700;font-size:14px;" id="coalRateDisplay">—</span>
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Elektrik tüketimi</div>
+          <span class="param-sublabel">Pompa, fan, soğuk oda, kontrol</span>
+        </div>
+        <span class="param-unit">kWh/yıl</span>
+        <input type="text" inputmode="numeric" class="param-input wide grouped" id="e_elecKwh" value="189.000">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Elektrik birim fiyatı</div>
+        </div>
+        <span class="param-unit">TL/kWh</span>
+        <input type="number" class="param-input" id="e_elecRate" value="4.5" step="0.1">
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Gider Kalemleri — Üretim</div>
+      <div class="param-row">
+        <div><div class="param-label">Gübre / besin çözeltisi</div></div>
+        <span class="param-unit">TL/m²/yıl</span>
+        <input type="number" class="param-input" id="c_fertilizer" value="22" step="1">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Fide / tohum</div></div>
+        <span class="param-unit">TL/m²/yıl</span>
+        <input type="number" class="param-input" id="c_seed" value="8" step="1">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Üretim ortamı (kokopit vb.)</div></div>
+        <span class="param-unit">TL/m²/yıl</span>
+        <input type="number" class="param-input" id="c_substrate" value="6" step="1">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">İlaç / biyolojik mücadele</div></div>
+        <span class="param-unit">TL/m²/yıl</span>
+        <input type="number" class="param-input" id="c_pesticide" value="5" step="1">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Ambalaj (kutu, klips, ip)</div></div>
+        <span class="param-unit">TL/m²/yıl</span>
+        <input type="number" class="param-input" id="c_packaging" value="165" step="5">
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Gider Kalemleri — Personel (mevsimsel işçilik)</div>
+      <div class="param-row">
+        <div><div class="param-label">Kış yoğunluğu</div><span class="param-sublabel">Ara/Oca/Şub + Kasım · 1.000 m² (dönüm) başına</span></div>
+        <span class="param-unit">kişi/dön</span>
+        <input type="number" class="param-input" id="hr_density_low" value="0.5" step="0.05">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Ana sezon yoğunluğu</div><span class="param-sublabel">Mart→Ağustos kademeli ulaşılan; Ekim</span></div>
+        <span class="param-unit">kişi/dön</span>
+        <input type="number" class="param-input" id="hr_density_mid" value="0.8" step="0.05">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Zirve yoğunluğu (Eylül)</div><span class="param-sublabel">En yoğun hasat ayı</span></div>
+        <span class="param-unit">kişi/dön</span>
+        <input type="number" class="param-input" id="hr_density_peak" value="1.25" step="0.05">
+      </div>
+      <div class="param-row" style="background:rgba(245,158,11,0.07);border-radius:6px;padding:8px;">
+        <div><div class="param-label" style="color:#f59e0b;">⇒ Ortalama işçi (yıllık)</div><span class="param-sublabel" id="hr_workerCountNote" style="color:#f59e0b;">—</span></div>
+        <span class="param-unit" style="color:#f59e0b;font-weight:700;font-size:13px;" id="hr_workerCountDisplay">—</span>
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">İşçi aylık brüt</div><span class="param-sublabel">2026 asgari ücret bandı</span></div>
+        <span class="param-unit">TL/ay</span>
+        <input type="text" inputmode="numeric" class="param-input wide grouped" id="hr_workerSalary" value="32.000">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Teknik/yönetici (kişi)</div></div>
+        <span class="param-unit">kişi</span>
+        <input type="number" class="param-input" id="hr_mgmt" value="5" step="1">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Teknik/yönetici aylık brüt</div></div>
+        <span class="param-unit">TL/ay</span>
+        <input type="text" inputmode="numeric" class="param-input wide grouped" id="hr_mgmtSalary" value="60.000">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">SGK & işveren yükü</div></div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="hr_burden" value="22" step="1">
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Gider Kalemleri — G.Ü.G. & Diğer</div>
+      <div class="param-row">
+        <div><div class="param-label">Genel yönetim & ofis</div></div>
+        <span class="param-unit">TL/yıl</span>
+        <input type="text" inputmode="numeric" class="param-input wide grouped" id="c_overhead" value="600.000">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Bakım & onarım</div></div>
+        <span class="param-unit">TL/yıl</span>
+        <input type="text" inputmode="numeric" class="param-input wide grouped" id="c_maintenance" value="800.000">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Soğuk zincir & nakliye</div></div>
+        <span class="param-unit">TL/yıl</span>
+        <input type="text" inputmode="numeric" class="param-input wide grouped" id="c_logistics" value="900.000">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Su (sulama sistemi)</div></div>
+        <span class="param-unit">TL/yıl</span>
+        <input type="text" inputmode="numeric" class="param-input wide grouped" id="c_water" value="250.000">
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">CAPEX & Arazi</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Sera anahtar teslim (tam donanım)</div>
+          <span class="param-sublabel">İska teklifi: plastik+ısıtma+kazan+otomasyon $76/m² · cam ~150</span>
+        </div>
+        <span class="param-unit">USD/m²</span>
+        <input type="number" class="param-input" id="cap_greenhouse" value="76" step="1">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Paketleme binası + soğuk oda</div><span class="param-sublabel">Teklif dışı; ayrı yapı</span></div>
+        <span class="param-unit">TL</span>
+        <input type="text" inputmode="numeric" class="param-input wide grouped" id="cap_packing" value="12.000.000">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">USD/TL kuru</div></div>
+        <span class="param-unit">TL/USD</span>
+        <input type="number" class="param-input" id="cap_usdtl" value="46" step="0.5">
+      </div>
+      <div class="sep"></div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Arazi bedeli</div>
+          <span class="param-sublabel">Elmadağ; 20 dönüm satın/tahsis</span>
+        </div>
+        <span class="param-unit">TL</span>
+        <input type="text" inputmode="numeric" class="param-input wide grouped" id="cap_landTotal" value="4.000.000">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Arazi alanı</div></div>
+        <span class="param-unit">dönüm</span>
+        <input type="number" class="param-input" id="cap_landDekar" value="20" step="1">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Amortisman periyodu</div><span class="param-sublabel">Arazi bedeli kaç yıla yayılıyor</span></div>
+        <span class="param-unit">yıl</span>
+        <input type="number" class="param-input" id="cap_landPeriod" value="10" step="1">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Beklenmeyen giderler</div></div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="cap_contingency" value="10" step="1">
+      </div>
+    </div>
+
+    <!-- TARIM BAKANLIĞI HİBESİ -->
+    <div class="section">
+      <div class="section-title">Tarım Bakanlığı Hibesi (5 dönüm)</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Hibe tutarı (sabit)</div>
+          <span class="param-sublabel">5+15 modeli; 5 dönümlük proje hibesi</span>
+        </div>
+        <span class="param-unit">TL</span>
+        <input type="text" inputmode="numeric" class="param-input wide grouped" id="grant_amount" value="30.000.000">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Hakediş gecikmesi</div>
+          <span class="param-sublabel">Önce harca → hakediş → sonra tahsil</span>
+        </div>
+        <span class="param-unit">ay</span>
+        <input type="number" class="param-input" id="grant_lag" value="8" step="1">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Köprü kredi faizi</div>
+          <span class="param-sublabel">Hibe payı krediyle finanse edilir; kredi faiziyle aynı tut (~%8)</span>
+        </div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="grant_bridgeRate" value="8" step="1">
+      </div>
+      <div class="param-row" style="background:rgba(34,201,122,0.08);border-radius:6px;padding:8px;">
+        <div>
+          <div class="param-label" style="color:#22c97a;">⇒ Hibe sonrası net yatırım</div>
+          <span class="param-sublabel" id="grant_amountNote" style="color:#22c97a;">—</span>
+        </div>
+        <span class="param-unit" style="color:#22c97a;font-weight:700;font-size:14px;" id="grant_amountDisplay">—</span>
+      </div>
+    </div>
+
+    <!-- ZİRAAT BANKASI KREDİSİ -->
+    <div class="section">
+      <div class="section-title">Ziraat Bankası Kredisi</div>
+      <div class="param-row">
+        <div><div class="param-label">Yıllık faiz oranı</div><span class="param-sublabel">Sabit; indirimli tarımsal yatırım kredisi</span></div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="zb_rate" value="8" step="0.5">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Kredi oranı (net CAPEX'in %'si)</div><span class="param-sublabel">Hibe sonrası kalanın tamamı kredi = %100</span></div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="fin_leverage" value="100" step="5" min="0" max="100">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">Kredi vadesi</div><span class="param-sublabel">İlk 2 yıl faiz + 5 yıl anapara (grace aşağıda)</span></div>
+        <span class="param-unit">yıl</span>
+        <input type="number" class="param-input" id="fin_term" value="7" step="1">
+      </div>
+    </div>
+
+    <!-- YATIRIM TEŞVİK BELGESİ -->
+    <div class="section">
+      <div class="section-title">Yatırım Teşvik Belgesi (opsiyonel — şimdilik kapalı)</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">KDV İstisnası</div>
+          <span class="param-sublabel">Yatırım harcamaları KDV'den muaf</span>
+        </div>
+        <span class="param-unit">✓</span>
+        <input type="checkbox" id="ytb_kdv" style="width:20px;height:20px;">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">SGK Prim Desteği</div>
+          <span class="param-sublabel">İşveren SGK primi indirimi</span>
+        </div>
+        <span class="param-unit">✓</span>
+        <input type="checkbox" id="ytb_sgk" style="width:20px;height:20px;">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">SGK destek oranı</div></div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="ytb_sgkRate" value="50" step="5" min="0" max="100">
+      </div>
+      <div class="param-row">
+        <div><div class="param-label">SGK destek süresi</div></div>
+        <span class="param-unit">yıl</span>
+        <input type="number" class="param-input" id="ytb_sgkYears" value="7" step="1">
+      </div>
+    </div>
+
+    <!-- BAŞLANGIÇ & GRACE -->
+    <div class="section">
+      <div class="section-title">Başlangıç & Ödemesiz Dönem</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Ödemesiz dönem (grace)</div>
+          <span class="param-sublabel">Sadece faiz ödenen süre</span>
+        </div>
+        <span class="param-unit">yıl</span>
+        <input type="number" class="param-input" id="fin_grace" value="2" step="1" min="0">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">İnşaat / kurulum süresi</div>
+          <span class="param-sublabel">Kredi grace periyodu</span>
+        </div>
+        <span class="param-unit">ay</span>
+        <input type="number" class="param-input" id="fin_construction" value="12" step="3">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">İlk yıl devreye alma verimi</div>
+          <span class="param-sublabel">Tam kapasite %100'ün yüzdesi</span>
+        </div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="fin_rampup" value="60" step="5">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Ek işletme sermayesi tamponu</div>
+          <span class="param-sublabel">Kasa güvenlik payı</span>
+        </div>
+        <span class="param-unit">TL</span>
+        <input type="text" inputmode="numeric" class="param-input wide grouped" id="fin_workingCap" value="3.000.000">
+      </div>
+    </div>
+
+    <!-- ENFLASYON -->
+    <div class="section">
+      <div class="section-title">Enflasyon Varsayımları</div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Gelir enflasyonu (fiyat artışı)</div>
+          <span class="param-sublabel">Domates satış fiyatı yıllık büyüme</span>
+        </div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="inf_rev" value="30" step="5">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Girdi enflasyonu (maliyet artışı)</div>
+          <span class="param-sublabel">İşçilik, gübre, enerji, ambalaj</span>
+        </div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="inf_cost" value="35" step="5">
+      </div>
+      <div class="param-row">
+        <div>
+          <div class="param-label">Reel baz yılı (deflasyon için)</div>
+          <span class="param-sublabel">Y1 = 100 endeks; reel karşılaştırma</span>
+        </div>
+        <span class="param-unit">%</span>
+        <input type="number" class="param-input" id="inf_deflator" value="32" step="5">
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+
+    <!-- SCENARIO BUTTONS -->
+    <div class="scenario-strip">
+      <span style="font-size:11px;color:var(--text3);margin-right:4px;line-height:28px;">Senaryo:</span>
+      <button class="scenario-btn" onclick="setScenario('pessimistic')">😟 Kötümser</button>
+      <button class="scenario-btn active" id="btn_base" onclick="setScenario('base')">📊 Baz</button>
+      <button class="scenario-btn" onclick="setScenario('optimistic')">🚀 İyimser</button>
+      <button class="scenario-btn" onclick="setScenario('noGrant')">🚫 Hibe Onaysız</button>
+      <span style="width:1px;height:22px;background:var(--border2);margin:0 4px;"></span>
+      <select id="savedSelect" class="scenario-btn" style="border-color:#4a6cf7;color:#4a6cf7;padding-right:8px;max-width:170px;" title="Kayıtlı senaryolar"></select>
+      <button class="scenario-btn" onclick="loadSelected()" style="border-color:#4a6cf7;color:#4a6cf7;" title="Seçili kaydı yükle">📂 Yükle</button>
+      <button class="scenario-btn" onclick="deleteSelected()" style="border-color:#f04040;color:#f04040;" title="Seçili kaydı sil">🗑</button>
+      <button onclick="saveScenario()" style="margin-left:2px;padding:7px 14px;background:#4a6cf7;border:none;border-radius:6px;color:#fff;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;font-weight:600;letter-spacing:0.04em;transition:all 0.2s;box-shadow:0 2px 8px rgba(74,108,247,0.2);" onmouseover="this.style.background='#5b7bff'" onmouseout="this.style.background='#4a6cf7'" title="Mevcut ayarları isimle kaydet">+ Kaydet</button>
+      <span style="width:1px;height:22px;background:var(--border2);margin:0 4px;"></span>
+      <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="importSavesFile(this)">
+      <button class="scenario-btn" onclick="document.getElementById('importFile').click()" style="border-color:#22c97a;color:#22c97a;" title="JSON dosyasından senaryo içe aktar">📥 İçe</button>
+      <button class="scenario-btn" onclick="exportSaves()" style="border-color:#22c97a;color:#22c97a;" title="Tüm kayıtları JSON dosyası olarak indir (yedek)">📤 Dışa</button>
+    </div>
+
+    <!-- KPI STRIP - ROW 1: Kâr & Geri Dönüş -->
+    <div class="kpi-strip">
+      <div class="kpi-card">
+        <div class="kpi-label">Yıllık Net Kâr (Kredi Öncesi)</div>
+        <div class="kpi-value" id="kpi_netProfit">—</div>
+        <div class="kpi-sub" id="kpi_netProfitUsd">— USD</div>
+      </div>
+      <div class="kpi-card highlight">
+        <div class="kpi-label">🔑 Kredi Sonrası Serbest Nakit</div>
+        <div class="kpi-value" id="kpi_freeCash">—</div>
+        <div class="kpi-sub" id="kpi_debtService">Yıllık taksit: —</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Geri Dönüş (Cepten Çıkan)</div>
+        <div class="kpi-value" id="kpi_payback">—</div>
+        <div class="kpi-sub" id="kpi_paybackSub">Kümülatif nakit başabaş</div>
+      </div>
+    </div>
+
+    <!-- KPI STRIP - ROW 2: Başlangıç & Finansman -->
+    <div class="kpi-strip-row2">
+      <div class="kpi-card highlight">
+        <div class="kpi-label">💰 Cebinde Olması Gereken</div>
+        <div class="kpi-value warn" id="kpi_cashNeeded">—</div>
+        <div class="kpi-sub" id="kpi_cashNeededSub">Özkaynak + işletme tamponu</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Kâr Marjı</div>
+        <div class="kpi-value" id="kpi_margin">—</div>
+        <div class="kpi-sub" id="kpi_marginSub">Ciro: —</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Toplam CAPEX</div>
+        <div class="kpi-value neutral" id="kpi_capex">—</div>
+        <div class="kpi-sub" id="kpi_capexSub">— USD/m²</div>
+      </div>
+    </div>
+
+    <!-- CONTENT GRID -->
+    <div class="content-grid">
+
+      <!-- P&L TABLE -->
+      <div class="chart-section">
+        <div class="chart-title">📋 Yıllık Gelir / Gider İcmali</div>
+        <table class="pnl-table" id="pnlTable">
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- COST BREAKDOWN CHART -->
+      <div class="chart-section">
+        <div class="chart-title">🥧 Gider Dağılımı</div>
+        <div class="chart-container">
+          <canvas id="costChart"></canvas>
+        </div>
+        <div id="energySavingNote" style="margin-top:16px;padding:14px 16px;background:rgba(255,107,26,0.05);border:1px solid rgba(255,107,26,0.15);border-radius:8px;font-size:11px;color:var(--text2);font-family:'IBM Plex Mono',monospace;line-height:1.7;"></div>
+      </div>
+
+      <!-- REVENUE vs COST BAR -->
+      <div class="chart-section">
+        <div class="chart-title">📊 Gelir — Gider — Kâr Karşılaştırması</div>
+        <div class="chart-container">
+          <canvas id="barChart"></canvas>
+        </div>
+      </div>
+
+      <!-- SENSITIVITY -->
+      <div class="chart-section">
+        <div class="chart-title">  Duyarlılık: Fiyat × Verim Senaryoları</div>
+        <div id="sensitivityTable" style="font-family:'IBM Plex Mono',monospace;font-size:11px;overflow-x:auto;"></div>
+      </div>
+
+    </div>
+
+    <!-- YIL YIL NAKİT AKIŞI -->
+    <div style="padding:28px 24px;border-top:1px solid var(--border);">
+      <div class="chart-title" style="margin-bottom:10px;"> '  Yıl Yıl Finansal Akış  " "Cebimde Ne Kalıyor?"</div>
+      <div id="cashStartNote" style="margin-bottom:18px;padding:16px 18px;background:rgba(255,107,26,0.06);border:1px solid rgba(255,107,26,0.2);border-radius:10px;font-size:12px;color:var(--text2);font-family:'IBM Plex Mono',monospace;line-height:1.9;"></div>
+      <div style="overflow-x:auto;">
+        <table id="yearlyTable" style="width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:11px;min-width:700px;">
+          <thead id="yearlyHead"></thead>
+          <tbody id="yearlyBody"></tbody>
+        </table>
+      </div>
+      <div id="realNote" style="margin-top:10px;font-size:11px;font-family:'IBM Plex Mono',monospace;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DRAWER (MOBILE) ─────────────────────────────────────────────────────
+function toggleDrawer() {
+  const panel = document.getElementById('leftPanel');
+  const overlay = document.getElementById('drawerOverlay');
+  const btn = document.getElementById('menuBtn');
+  const isOpen = panel.classList.contains('open');
+  if (isOpen) { closeDrawer(); } else {
+    panel.classList.add('open');
+    overlay.classList.add('visible');
+    btn.classList.add('open');
+    btn.textContent = '✕';
+  }
+}
+function closeDrawer() {
+  const panel = document.getElementById('leftPanel');
+  const overlay = document.getElementById('drawerOverlay');
+  const btn = document.getElementById('menuBtn');
+  panel.classList.remove('open');
+  overlay.classList.remove('visible');
+  btn.classList.remove('open');
+  btn.textContent = '☰';
+}
+// Close drawer on resize to desktop
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 720) closeDrawer();
+});
+
+// ─── CHART INSTANCES ──────────────────────────────────────────────────────
+let costChart = null, barChart = null;
+
+// ─── UTILITY ─────────────────────────────────────────────────────────────
+const fmt = (n, decimals=0) => {
+  if (isNaN(n) || !isFinite(n)) return '—';
+  const abs = Math.abs(n);
+  if (abs >= 1e9) return (n/1e9).toFixed(decimals > 0 ? 2 : 1) + ' Mrd';
+  if (abs >= 1e6) return (n/1e6).toFixed(1) + ' M';
+  if (abs >= 1e3) return (n/1e3).toFixed(0) + ' K';
+  return n.toFixed(decimals);
+};
+const fmtTL = n => fmt(n) + ' TL';
+const fmtUSD = (n, rate) => fmt(n/rate, 0) + ' $';
+const g = id => {
+  const el = document.getElementById(id);
+  let v = el.value;
+  if (el.classList.contains('grouped')) v = v.replace(/\./g, ''); // binlik ayraçları temizle
+  return parseFloat(v) || 0;
+};
+// Binlik ayraçlı (grouped) alanlar için yardımcılar
+function formatGroupedEl(el) {
+  const raw = el.value.replace(/\D/g, '');
+  el.value = raw === '' ? '' : Number(raw).toLocaleString('tr-TR');
+}
+function setInputValue(el, val) {
+  if (el.classList.contains('grouped')) {
+    const raw = String(val).replace(/\D/g, '');
+    el.value = raw === '' ? '' : Number(raw).toLocaleString('tr-TR');
+  } else {
+    el.value = val;
+  }
+}
+
+// ─── CALCULATE ───────────────────────────────────────────────────────────
+function calculate() {
+  const area = g('p_area');
+  const yieldKg = g('p_yield');
+  const wastePct = g('p_waste') / 100;
+  const commission = g('r_commission') / 100;
+  const tomatoPrice = g('r_tomatoPrice');
+  const grade2Price = g('r_grade2Price');
+
+  // ── ISITMA (KATI YAKIT / KÖMÜR) — tüketim girdi, ısı ihtiyacı türetilir
+  const coalTon = g('e_coalTon');               // yıllık kömür tüketimi (ton)
+  const coalKg  = coalTon * 1000;
+  const coalPriceTon = g('e_coalPriceTon');     // TL/ton
+  const coalCalorie  = g('e_coalCalorie');      // kcal/kg (alt ısıl değer)
+  const coalEff      = g('e_coalEff') / 100;    // kazan verimi
+  // 1 kg kömürden faydalı ısı = calorie*verim kcal = (.../860) kWh
+  const usefulKwhPerKg = (coalCalorie * coalEff) / 860;
+  const coalRate = usefulKwhPerKg > 0 ? (coalPriceTon / 1000) / usefulKwhPerKg : 0; // TL/kWh ısı (gösterge)
+  const heatKwh = coalKg * usefulKwhPerKg;       // türetilen yıllık ısı (kWh)
+  const heatGwh = heatKwh / 1e6;                  // GWh (gösterge)
+  // Kazan kapasitesi (tepe güç): 1 kcal/h = 1,163 W
+  const boilerCapKcal = g('e_boilerCapacity');     // kcal/h
+  const boilerMW = boilerCapKcal * 1.163 / 1e6;    // MW
+  // Elektrik: tüketim (kWh) × birim fiyat (TL/kWh)
+  const elecKwh  = g('e_elecKwh');
+  const elecRate = g('e_elecRate');
+  const electric = elecKwh * elecRate;
+
+  const fertPerM2 = g('c_fertilizer');
+  const seedPerM2 = g('c_seed');
+  const substratePerM2 = g('c_substrate');
+  const pesticidePerM2 = g('c_pesticide');
+  const packagingPerM2 = g('c_packaging');   // TL/m²/yıl
+  const overhead = g('c_overhead');
+  const maintenance = g('c_maintenance');
+  const logistics = g('c_logistics');
+  const water = g('c_water');
+
+  // İşçilik: mevsimsel aylık yoğunluk profili (kişi/dönüm)
+  // Ara/Oca/Şub + Kasım = kış; Mart→Ağustos kademeli ana sezona; Eylül zirve; Ekim ana sezon
+  const dekarP = area / 1000;
+  const densLow  = g('hr_density_low');
+  const densMid  = g('hr_density_mid');
+  const densPeak = g('hr_density_peak');
+  const monthlyDensity = new Array(12);
+  monthlyDensity[0] = densLow;  // Ocak
+  monthlyDensity[1] = densLow;  // Şubat
+  for (let m = 0; m < 6; m++) monthlyDensity[2 + m] = densLow + (densMid - densLow) * ((m + 1) / 6); // Mart→Ağustos
+  monthlyDensity[8]  = densPeak; // Eylül (zirve)
+  monthlyDensity[9]  = densMid;  // Ekim
+  monthlyDensity[10] = densLow;  // Kasım
+  monthlyDensity[11] = densLow;  // Aralık
+  const avgDensity = monthlyDensity.reduce((a, b) => a + b, 0) / 12;
+  const workers = avgDensity * dekarP;       // yıllık ortalama işçi (adam-ay/12)
+  const workersPeak = densPeak * dekarP;     // zirve ay işçisi
+  const workersLow  = densLow * dekarP;      // kış ayı işçisi
+  const workerSalary = g('hr_workerSalary');
+  const mgmt = g('hr_mgmt');
+  const mgmtSalary = g('hr_mgmtSalary');
+  const burden = g('hr_burden') / 100;
+
+  const capGH = g('cap_greenhouse');   // anahtar teslim tam donanım (ısıtma+sistem dahil) USD/m²
+  const capPacking = g('cap_packing');
+  const capUSD = g('cap_usdtl');
+  const capLand = g('cap_landTotal');
+  const capLandDekar = g('cap_landDekar');
+  const capLandPeriod = g('cap_landPeriod');
+  const contingency = g('cap_contingency') / 100;
+
+  // — TARIM BAKANLIĞI HİBESİ (sabit tutar)
+  const grantInput = g('grant_amount');          // sabit hibe tutarı (TL)
+  const grantLag  = g('grant_lag');              // hakediş gecikmesi (ay)
+  const bridgeRate = g('grant_bridgeRate') / 100; // köprü finansman yıllık faizi
+
+  // — ZİRAAT KREDİSİ
+  const finLeverage = g('fin_leverage') / 100;
+  const finTerm = g('fin_term');
+  // — YTB TEŞVİK (opsiyonel, default kapalı)
+  const ytbKdv = document.getElementById('ytb_kdv').checked;
+  const ytbSgk = document.getElementById('ytb_sgk').checked;
+  const ytbSgkRate = g('ytb_sgkRate') / 100;
+  const ytbSgkYears = g('ytb_sgkYears');
+
+  // — ZİRAAT FAİZ (sabit yıllık oran)
+  const zbEffective = g('zb_rate') / 100;
+
+  const finGrace = g('fin_grace');
+  const constructionMonths = g('fin_construction');
+  const rampup = g('fin_rampup') / 100;
+  const workingCap = g('fin_workingCap');
+
+  // ── CO2 GÜBRELEME (verim artışı + maliyet)
+  const co2Enabled = document.getElementById('co2_enabled').checked;
+  const co2Boost = g('co2_yieldBoost') / 100;
+  const co2TonPerDekar = g('co2_tonPerDekar');
+  const co2PriceUsd = g('co2_priceUsd');
+  const effYield = co2Enabled ? yieldKg * (1 + co2Boost) : yieldKg;
+  const co2Cost = co2Enabled ? co2TonPerDekar * (area / 1000) * co2PriceUsd * capUSD : 0;
+
+  // ── PRODUCTION (CO2 etkili verim)
+  const totalKg = area * effYield;
+  const grade1Kg = totalKg * (1 - wastePct);
+  const grade2Kg = totalKg * wastePct;
+  // CO2'nin ek gelir katkısı (verim farkından, komisyon sonrası net)
+  const co2ExtraKg = co2Enabled ? area * (effYield - yieldKg) : 0;
+  const co2ExtraRev = co2ExtraKg * tomatoPrice * (1 - commission) * (1 - wastePct)
+                    + co2ExtraKg * grade2Price * (1 - commission) * wastePct;
+
+  // ── REVENUE
+  const rev_grade1 = grade1Kg * tomatoPrice * (1 - commission);
+  const rev_grade2 = grade2Kg * grade2Price * (1 - commission);
+  const rev_total = rev_grade1 + rev_grade2;
+
+  // ── ENERGY (sadece katı yakıt + elektrik)
+  const cost_coal = coalTon * coalPriceTon;   // ton × TL/ton (doğrudan)
+  const cost_energy = cost_coal + electric;
+
+  // ── INPUTS
+  const cost_inputs = area * (fertPerM2 + seedPerM2 + substratePerM2 + pesticidePerM2);
+  const cost_packaging = area * packagingPerM2;
+
+  // ── PERSONNEL
+  const cost_workers = workers * workerSalary * 12 * (1 + burden);
+  const cost_mgmt = mgmt * mgmtSalary * 12 * (1 + burden);
+  const cost_personnel = cost_workers + cost_mgmt;
+
+  // ── OVERHEAD
+  const cost_other = overhead + maintenance + logistics + water;
+
+  // ── LAND (annual)
+  const landAnnual = capLand / capLandPeriod;
+
+  // ── TOTAL OPEX (CO2 maliyeti dahil)
+  const opex_total = cost_energy + cost_inputs + cost_packaging + cost_personnel + cost_other + landAnnual + co2Cost;
+
+  // ── NET
+  const net_profit = rev_total - opex_total;
+  const margin = rev_total > 0 ? (net_profit / rev_total) * 100 : 0;
+
+  // ── CAPEX
+  const usdCosts = capGH * area;   // tam donanım sera (ısıtma+kazan+sistem dahil)
+  const cap_base = usdCosts * capUSD + capPacking + capLand;
+  const cap_total = cap_base * (1 + contingency);
+  const cap_perM2 = cap_total / area;
+  const capUSDperM2 = cap_perM2 / capUSD;
+
+  // ── KDV İSTİSNASI (opsiyonel, default kapalı)
+  const kdvSaving = ytbKdv ? cap_total * 0.20 : 0;
+  const capexAfterKdv = cap_total - kdvSaving;
+
+  // ── TARIM BAKANLIĞI HİBESİ (sabit tutar; hibe sonrası kalanın tamamı kredi)
+  const grantAmount = Math.min(grantInput, capexAfterKdv);   // CAPEX'i aşamaz
+  // Köprü maliyeti: hibe tahsil edilene dek tutar finanse edilir
+  const bridgeCost = grantAmount * bridgeRate * (grantLag / 12);
+  // Net yatırım (hibe sonrası) → finansman tabanı
+  const effectiveCapex = capexAfterKdv - grantAmount;
+
+  // ── SGK PRİM DESTEĞİ (opsiyonel)
+  const sgkBurdenAmt = (workers * workerSalary * 12 + mgmt * mgmtSalary * 12) * burden;
+  const sgkAnnualSaving = ytbSgk ? sgkBurdenAmt * ytbSgkRate : 0;
+
+  // ── ZİRAAT KREDİSİ (net CAPEX üzerinden)
+  const finRate = zbEffective;
+  const debt = effectiveCapex * finLeverage;
+  const equity = effectiveCapex - debt;
+  const paymentTerm = Math.max(finTerm - finGrace, 1);
+  const annuityFactor = finRate > 0
+    ? (finRate * Math.pow(1+finRate, paymentTerm)) / (Math.pow(1+finRate, paymentTerm) - 1)
+    : 1/paymentTerm;
+  const annualDebtService = debt * annuityFactor;
+  const graceAnnualInterest = debt * finRate;
+
+  // ── PAYBACK (basit; brüt yatırım & özkaynak)
+  const payback = net_profit > 0 ? cap_total / net_profit : Infinity;
+  const paybackWithDebt = (net_profit - annualDebtService) > 0
+    ? equity / (net_profit - annualDebtService)
+    : Infinity;
+
+  // ── BAŞLANGIÇ NAKİT İHTİYACI (hibe köprüsü KREDİYLE finanse edilir, cepten DEĞİL)
+  // = Özkaynak + inşaat dönemi OPEX tamponu + işletme sermayesi
+  //   (hibe payını kredi köprüler; köprü faizi işletme gideri olarak nakit akışında)
+  const constructionOpex = (opex_total / 12) * constructionMonths * 0.3;
+  const cashNeeded = equity + constructionOpex + workingCap;
+
+  const infRev  = g('inf_rev')  / 100;   // gelir fiyat artışı
+  const infCost = g('inf_cost') / 100;   // maliyet artışı
+  const infDefl = g('inf_deflator') / 100; // reel deflasyon baz
+
+  // ── YILLIK NAKİT AKIŞI (10 yıl) — ENFLASYONİST
+  const years = [];
+  let cumulativeCash = 0;
+  let cumulativeReal = 0;
+
+  for (let yr = 0; yr <= 10; yr++) {
+    if (yr === 0) {
+      // Kuruluşta cepten çıkış: özkaynak + inşaat + işl. sermayesi (hibe payını KREDİ köprüler)
+      cumulativeCash = -(equity + constructionOpex + workingCap);
+      years.push({ yr: 'Y0', gelir: 0, opex: 0, net: 0, taksit: 0, sgkDestek: 0, grantInflow: 0,
+        freeCash: 0, kumulatif: cumulativeCash, realFreeCash: 0, kumulatifReal: cumulativeCash,
+        revFactor: 1, costFactor: 1, note: 'Kuruluş (özkaynak)' });
+    } else {
+      const revFactor  = Math.pow(1 + infRev,  yr - 1);
+      const costFactor = Math.pow(1 + infCost, yr - 1);
+      const deflFactor = Math.pow(1 + infDefl, yr - 1);
+      const yieldFactor = yr === 1 ? rampup : 1.0;
+
+      const yRev  = rev_total  * yieldFactor * revFactor;
+      let yOpex = opex_total * yieldFactor * costFactor;
+      const ySgkSaving = (ytbSgk && yr <= ytbSgkYears) ? sgkAnnualSaving * costFactor : 0;
+      yOpex -= ySgkSaving;
+      const yNet  = yRev - yOpex;
+
+      let yTaksit = 0;
+      if (yr <= finGrace) {
+        yTaksit = -graceAnnualInterest;
+      } else if (yr <= finTerm) {
+        yTaksit = -annualDebtService;
+      }
+
+      // 1. yıl: hibe gelir ve köprü kredisini kapatır (nakit nötr); sadece köprü faizi gider
+      const yGrantInflow = (yr === 1) ? (-bridgeCost) : 0;
+
+      const yFreeCash = yNet + yTaksit + yGrantInflow;
+      const yRealFree = yFreeCash / deflFactor;
+      cumulativeCash += yFreeCash;
+      cumulativeReal += yRealFree;
+
+      const notes = [];
+      if (yr === 1) notes.push(`%${Math.round(rampup*100)} kap.`);
+      if (yr === 1 && bridgeCost > 0) notes.push(`köprü faizi -${fmt(bridgeCost)}`);
+      if (yr <= finGrace) notes.push('grace');
+      if (ySgkSaving > 0) notes.push('SGK↓');
+      if (yNet < 0) notes.push('⚠ zarar');
+
+      years.push({ yr: `Y${yr}`, gelir: yRev, opex: -yOpex, net: yNet,
+        taksit: yTaksit, sgkDestek: ySgkSaving, grantInflow: yGrantInflow, freeCash: yFreeCash,
+        realFreeCash: yRealFree,
+        kumulatif: cumulativeCash, kumulatifReal: cumulativeReal,
+        revFactor, costFactor, deflFactor, note: notes.join(' ') });
+    }
+  }
+
+  return {
+    area,
+    totalKg, grade1Kg, grade2Kg,
+    rev_grade1, rev_grade2, rev_total,
+    cost_coal, electric,
+    cost_energy, cost_inputs, cost_packaging, cost_personnel, cost_other, landAnnual,
+    opex_total, net_profit, margin,
+    cap_total, cap_perM2, capUSDperM2,
+    debt, equity, annualDebtService, payback, paybackWithDebt,
+    coalRate, coalTon, heatGwh, usefulKwhPerKg, boilerMW, boilerCapKcal,
+    workers, workersPeak, workersLow, avgDensity,
+    co2Enabled, co2Cost, co2ExtraRev, co2ExtraKg, effYield,
+    capUSD,
+    kdvSaving, effectiveCapex, sgkAnnualSaving, cashNeeded, workingCap, constructionOpex,
+    grantAmount, bridgeCost,
+    years, finRate, finGrace, graceAnnualInterest, zbEffective,
+    ytbKdv, ytbSgk, ytbSgkYears, infRev, infCost
+  };
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────
+function render() {
+  const d = calculate();
+
+  // Isıtma (katı yakıt) özeti
+  document.getElementById('coalTonDisplay').textContent = fmt(d.coalTon);
+  document.getElementById('coalRateText').textContent = `${d.coalRate.toFixed(2)} TL/kWh ısı · ${d.heatGwh} GWh/yıl`;
+  document.getElementById('coalCostDisplay').textContent = fmtTL(d.cost_coal);
+  document.getElementById('heatPerM2Display').textContent = fmtTL(d.cost_energy / d.area) + '/m²';
+  const coalRateDisp = document.getElementById('coalRateDisplay');
+  const coalDerivedNote = document.getElementById('coalDerivedNote');
+  if (coalRateDisp) coalRateDisp.textContent = `${d.coalRate.toFixed(2)} TL/kWh`;
+  if (coalDerivedNote) coalDerivedNote.textContent = `${fmt(d.coalTon)} ton/yıl · ${d.usefulKwhPerKg.toFixed(2)} kWh faydalı/kg`;
+  const boilerCapNote = document.getElementById('boilerCapNote');
+  if (boilerCapNote) boilerCapNote.textContent = `${(d.boilerCapKcal/1e6).toFixed(1)} Mkcal/h ≈ ${d.boilerMW.toFixed(2)} MW · ${(d.boilerMW*1e6/d.area).toFixed(0)} W/m² tepe yük`;
+  const hrCountDisp = document.getElementById('hr_workerCountDisplay');
+  const hrCountNote = document.getElementById('hr_workerCountNote');
+  if (hrCountDisp) hrCountDisp.textContent = `${Math.round(d.workers)} kişi`;
+  if (hrCountNote) hrCountNote.textContent = `Kış ${Math.round(d.workersLow)} · zirve(Eyl) ${Math.round(d.workersPeak)} · ort. ${d.avgDensity.toFixed(2)} kişi/dön`;
+
+  // CO2 net katkısı
+  const co2Disp = document.getElementById('co2_netDisplay');
+  const co2Note = document.getElementById('co2_netNote');
+  if (co2Disp && co2Note) {
+    if (d.co2Enabled) {
+      const co2Net = d.co2ExtraRev - d.co2Cost;
+      co2Disp.textContent = (co2Net >= 0 ? '+' : '') + fmtTL(co2Net);
+      co2Disp.style.color = co2Net >= 0 ? '#22c97a' : '#f04040';
+      co2Note.textContent = `Ek gelir ${fmtTL(d.co2ExtraRev)} − CO₂ mal. ${fmtTL(d.co2Cost)} · +${fmt(d.co2ExtraKg)} kg`;
+    } else {
+      co2Disp.textContent = 'kapalı';
+      co2Disp.style.color = '#64748b';
+      co2Note.textContent = 'CO₂ gübrelemesi devre dışı';
+    }
+  }
+
+  // KPIs
+  const kpiProfit = document.getElementById('kpi_netProfit');
+  kpiProfit.textContent = fmtTL(d.net_profit);
+  kpiProfit.className = 'kpi-value ' + (d.net_profit >= 0 ? 'positive' : 'negative');
+  document.getElementById('kpi_netProfitUsd').textContent = fmtUSD(d.net_profit, d.capUSD);
+
+  // Kredi sonrası serbest nakit (grace-aware)
+  const graceActive = d.finGrace >= 1;
+  const firstYearDebt = graceActive ? d.graceAnnualInterest : d.annualDebtService;
+  const freeCash = d.net_profit - firstYearDebt;
+  const kpiFree = document.getElementById('kpi_freeCash');
+  kpiFree.textContent = fmtTL(freeCash);
+  kpiFree.className = 'kpi-value ' + (freeCash >= 0 ? 'positive' : 'negative');
+  document.getElementById('kpi_debtService').textContent = graceActive
+    ? `Grace ${d.finGrace}y: ${fmtTL(d.graceAnnualInterest)} / Sonra: ${fmtTL(d.annualDebtService)}`
+    : `Yıllık taksit: ${fmtTL(d.annualDebtService)}`;
+
+  // Geri dönüş = CEPTEN ÇIKAN paranın dönüşü: kümülatif nakit akışı (Y0=-cashNeeded,
+  // taksit dahil) ilk kez pozitife geçtiği yıl (lineer interpolasyonla)
+  let beYear = Infinity;
+  for (let i = 1; i < d.years.length; i++) {
+    if (d.years[i].kumulatif >= 0) {
+      const prev = d.years[i-1].kumulatif, cur = d.years[i].kumulatif;
+      beYear = (i - 1) + (cur !== prev ? (-prev) / (cur - prev) : 0);
+      break;
+    }
+  }
+  const kpiPb = document.getElementById('kpi_payback');
+  kpiPb.textContent = isFinite(beYear) ? beYear.toFixed(1) + ' yıl' : '10+ yıl';
+  kpiPb.className = 'kpi-value ' + (isFinite(beYear) && beYear <= 5 ? 'positive' : (isFinite(beYear) && beYear <= 8 ? 'warn' : 'negative'));
+  document.getElementById('kpi_paybackSub').textContent =
+    `Cepten çıkan ${fmtTL(d.cashNeeded)} · kümülatif başabaş`;
+
+  // Cebimde ne kadar olmalı
+  document.getElementById('kpi_cashNeeded').textContent = fmtTL(d.cashNeeded);
+  document.getElementById('kpi_cashNeededSub').textContent = 
+    `Özkaynak ${fmtTL(d.equity)} + tampon ${fmtTL(d.constructionOpex + d.workingCap)}`;
+
+  const kpiMargin = document.getElementById('kpi_margin');
+  kpiMargin.textContent = d.margin.toFixed(1) + '%';
+  kpiMargin.className = 'kpi-value ' + (d.margin >= 20 ? 'positive' : d.margin >= 0 ? 'warn' : 'negative');
+  document.getElementById('kpi_marginSub').textContent = `Ciro: ${fmtTL(d.rev_total)}`;
+
+  document.getElementById('kpi_capex').textContent = fmtTL(d.effectiveCapex);
+  document.getElementById('kpi_capexSub').textContent = `${(d.cap_total/d.area/d.capUSD).toFixed(0)} USD/m² (brüt) · Hibe: ${fmtTL(d.grantAmount)}`;
+
+  // P&L TABLE
+  const rows = [
+    { label: '📗 GELİRLER', value: null, cls: 'subtotal' },
+    { label: '  1. sınıf domates (net, komisyon düşülmüş)', value: d.rev_grade1, cls: 'indent' },
+    { label: '  2. sınıf / fire satışı', value: d.rev_grade2, cls: 'indent' },
+    { label: 'TOPLAM GELİR', value: d.rev_total, cls: 'total-row' },
+    { label: '', value: null },
+    { label: '📕 GİDERLER', value: null, cls: 'subtotal' },
+    { label: '  Kömür ısıtma (katı yakıt)', value: d.cost_coal, cls: 'indent' },
+    { label: '  Elektrik (pompa, fan, soğuk oda)', value: d.electric, cls: 'indent' },
+    { label: '  Gübre + tohum + ortam + ilaç', value: d.cost_inputs, cls: 'indent' },
+    { label: '  Ambalaj', value: d.cost_packaging, cls: 'indent' },
+    { label: '  Personel (işçi + teknik/yönetici)', value: d.cost_personnel, cls: 'indent' },
+    { label: '  Genel yönetim + bakım + lojistik + su', value: d.cost_other, cls: 'indent' },
+    { label: '  Arazi kira (yıllık pay)', value: d.landAnnual, cls: 'indent' },
+    ...(d.co2Enabled ? [{ label: '  CO₂ gübreleme', value: d.co2Cost, cls: 'indent' }] : []),
+    { label: 'TOPLAM GİDER', value: d.opex_total, cls: 'total-row' },
+    { label: '', value: null },
+    { label: '⚡ NET KÂR / ZARAR', value: d.net_profit, cls: 'total-row' },
+    { label: '  Yıllık kredi taksiti', value: d.annualDebtService, cls: 'indent' },
+    { label: '  Kredi sonrası serbest nakit', value: d.net_profit - d.annualDebtService, cls: 'subtotal' },
+  ];
+
+  const tbody = document.querySelector('#pnlTable tbody');
+  tbody.innerHTML = rows.map(r => {
+    if (r.value === null && !r.label) return '<tr><td colspan="2" style="padding:4px"></td></tr>';
+    if (r.value === null) return `<tr class="${r.cls||''}"><td colspan="2"><b>${r.label}</b></td></tr>`;
+    const color = r.value >= 0 ? '#22c97a' : '#f04040';
+    const isCost = r.label.includes('GİDER') || r.label.includes('ısıtma') || r.label.includes('lık') 
+      || r.label.includes('Ambalaj') || r.label.includes('Personel') || r.label.includes('Genel')
+      || r.label.includes('Arazi') || r.label.includes('taksit');
+    const displayColor = (r.cls === 'total-row' || r.cls === 'subtotal') ? color : 
+      (isCost ? '#8a9ba8' : '#8a9ba8');
+    return `<tr class="${r.cls||''}">
+      <td>${r.label}</td>
+      <td style="color:${displayColor}">${fmtTL(r.value)}</td>
+    </tr>`;
+  }).join('');
+
+  // COST PIE CHART
+  const costLabels = ['Kömür Isıtma', 'Elektrik', 'Gübre/Girdiler', 'Ambalaj', 'Personel', 'G.Ü.G.+Diğer', 'Arazi'];
+  const costData = [d.cost_coal, d.electric, d.cost_inputs, d.cost_packaging, d.cost_personnel, d.cost_other, d.landAnnual];
+  const costColors = ['#4a5568', '#3a9fd4', '#22c97a', '#a78bfa', '#f59e0b', '#64748b', '#84cc16'];
+
+  if (costChart) { costChart.destroy(); }
+  costChart = new Chart(document.getElementById('costChart'), {
+    type: 'doughnut',
+    data: {
+      labels: costLabels,
+      datasets: [{ data: costData, backgroundColor: costColors, borderWidth: 0, hoverOffset: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { 
+          position: 'right', 
+          labels: { color: '#8a9ba8', font: { size: 10, family: 'IBM Plex Mono' }, boxWidth: 10, padding: 8 }
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` ${ctx.label}: ${fmtTL(ctx.raw)} (${(ctx.raw/d.opex_total*100).toFixed(1)}%)`
+          }
+        }
+      }
+    }
+  });
+
+  // ISITMA NOTU
+  const note = document.getElementById('energySavingNote');
+  const energyPctOfOpex = d.opex_total > 0 ? (d.cost_energy / d.opex_total * 100) : 0;
+  const eqFullLoadHours = d.boilerMW > 0 ? (d.heatGwh * 1000 / d.boilerMW) : 0;
+  note.innerHTML = `🔥 <b>Katı yakıt ısıtma yükü (Elmadağ):</b><br>` +
+    `Yıllık ısı ihtiyacı: ${d.heatGwh} GWh · Kömür: <b style="color:#718096">${fmt(d.coalTon)} ton/yıl</b><br>` +
+    `Kazan: <b style="color:#718096">${d.boilerMW.toFixed(2)} MW</b> (${(d.boilerMW*1e6/d.area).toFixed(0)} W/m²) · eşd. tam yük ~${Math.round(eqFullLoadHours)} h/yıl<br>` +
+    `Kömür gideri: ${fmtTL(d.cost_coal)} · Elektrik: ${fmtTL(d.electric)}<br>` +
+    `<span style="color:#ff6b1a;font-weight:600">Enerji, toplam giderin %${energyPctOfOpex.toFixed(0)}'ı</span>`;
+
+  // BAR CHART
+  if (barChart) { barChart.destroy(); }
+  barChart = new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Toplam Gelir', 'Toplam Gider', 'Net Kâr'],
+      datasets: [{
+        data: [d.rev_total, d.opex_total, d.net_profit],
+        backgroundColor: ['rgba(34,201,122,0.7)', 'rgba(240,64,64,0.7)', d.net_profit >= 0 ? 'rgba(34,201,122,0.9)' : 'rgba(240,64,64,0.9)'],
+        borderColor: ['#22c97a', '#f04040', d.net_profit >= 0 ? '#22c97a' : '#f04040'],
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${fmtTL(ctx.raw)}` } } },
+      scales: {
+        y: { ticks: { color: '#8a9ba8', font: { size: 9 }, callback: v => fmt(v) + ' TL' }, grid: { color: '#1f2a30' } },
+        x: { ticks: { color: '#8a9ba8', font: { size: 10 } }, grid: { display: false } }
+      }
+    }
+  });
+
+  // SENSITIVITY TABLE
+  const prices = [30, 40, 45, 55, 65];
+  const yields = [40, 45, 50, 55, 60];
+  
+  let stHtml = `<div style="overflow-x:auto"><table style="border-collapse:collapse;width:100%">`;
+  stHtml += `<tr><td style="padding:4px 8px;color:var(--text3);font-size:10px;">kg/m²↓ TL/kg→</td>`;
+  prices.forEach(p => stHtml += `<td style="padding:4px 8px;text-align:right;color:var(--text3)">${p}</td>`);
+  stHtml += '</tr>';
+
+  yields.forEach(y => {
+    stHtml += `<tr>`;
+    stHtml += `<td style="padding:4px 8px;color:var(--text3)">${y}</td>`;
+    prices.forEach(p => {
+      const area2 = g('p_area');
+      const wastePct2 = g('p_waste')/100;
+      const comm2 = g('r_commission')/100;
+      const g1 = area2 * y * (1 - wastePct2) * p * (1 - comm2);
+      const g2 = area2 * y * wastePct2 * g('r_grade2Price') * (1 - comm2);
+      const rev2 = g1 + g2;
+      const profit2 = rev2 - d.opex_total;
+      const margin2 = rev2 > 0 ? (profit2/rev2*100) : -999;
+      const isBase = (y === Math.round(g('p_yield')) && p === Math.round(g('r_tomatoPrice')));
+      const color = profit2 > 0 ? '#22c97a' : '#f04040';
+      const bg = isBase ? 'rgba(255,107,26,0.15)' : 'transparent';
+      const border = isBase ? 'border: 1px solid rgba(255,107,26,0.4);' : '';
+      stHtml += `<td style="padding:4px 8px;text-align:right;color:${color};background:${bg};${border};font-size:10px;">${fmt(profit2/1e6,1)}M</td>`;
+    });
+    stHtml += '</tr>';
+  });
+  stHtml += '</table></div>';
+  stHtml += `<div style="margin-top:8px;font-size:9px;color:var(--text3)">Değerler: Yıllık Net Kâr (M TL). Turuncu = mevcut senaryo. Diğer giderler sabit tutulmuştur.</div>`;
+  document.getElementById('sensitivityTable').innerHTML = stHtml;
+
+  // ── YIL YIL NAKİT AKIŞI
+  // Hibe / net yatırım gösterimi
+  const grantDisp = document.getElementById('grant_amountDisplay');
+  const grantNote = document.getElementById('grant_amountNote');
+  if (grantDisp) grantDisp.textContent = fmtTL(d.effectiveCapex);
+  if (grantNote) grantNote.textContent = `Hibe ${fmtTL(d.grantAmount)} · köprü mal. ${fmtTL(d.bridgeCost)} · tamamı kredi`;
+
+  document.getElementById('cashStartNote').innerHTML = `
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+      <span style="font-size:11px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;">💰 Başlangıçta Cebinde Olması Gereken</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:var(--thermal);letter-spacing:-0.02em;">${fmtTL(d.cashNeeded)}</span>
+    </div>
+
+    <div class="note-grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px;">
+        <div style="font-size:9px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Özkaynak</div>
+        <div style="font-size:16px;font-weight:600;color:var(--text);">${fmtTL(d.equity)}</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px;">
+        <div style="font-size:9px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">İnşaat Hazırlık</div>
+        <div style="font-size:16px;font-weight:600;color:var(--text);">${fmtTL(d.constructionOpex)}</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px 14px;">
+        <div style="font-size:9px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">İşletme Tamponu</div>
+        <div style="font-size:16px;font-weight:600;color:var(--text);">${fmtTL(d.workingCap)}</div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:12px;font-family:'IBM Plex Mono',monospace;">
+      ℹ️ Hibe payı (${fmtTL(d.grantAmount)}) krediyle köprülenir — cepten çıkmaz; 8 ay sonra hakedişle kredi kapanır. Köprü faizi: ${fmtTL(d.bridgeCost)} (işletmeden).
+    </div>
+
+    <div class="note-grid-2" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:11px;color:var(--text3);">
+      <div>Toplam (brüt) CAPEX: <b style="color:var(--text)">${fmtTL(d.cap_total)}</b></div>
+      <div>Tarım Bak. hibesi: <b style="color:#22c97a">${fmtTL(d.grantAmount)}</b></div>
+      <div>Net yatırım (hibe sonrası): <b style="color:var(--text)">${fmtTL(d.effectiveCapex)}</b></div>
+      <div>Köprü finansman maliyeti: <b style="color:#f59e0b">${fmtTL(d.bridgeCost)}</b></div>
+      <div>Ziraat kredi tutarı: <b style="color:var(--text)">${fmtTL(d.debt)}</b></div>
+      <div>Ziraat faiz (sabit): <b style="color:#22c97a">%${(d.finRate*100).toFixed(1)}</b> · ${d.finGrace} yıl faiz + sonra anapara</div>
+      ${d.ytbKdv ? `<div>KDV istisnası: <b style="color:#22c97a">${fmtTL(d.kdvSaving)}</b></div>` : ''}
+      ${d.ytbSgk ? `<div>SGK desteği: <b style="color:#22c97a">${fmtTL(d.sgkAnnualSaving)}/yıl</b> · ${d.ytbSgkYears} yıl</div>` : ''}
+      <div>Gelir enflasyonu: <b style="color:var(--text)">+%${(d.infRev*100).toFixed(0)}/yıl</b></div>
+      <div>Maliyet enflasyonu: <b style="color:var(--text)">+%${(d.infCost*100).toFixed(0)}/yıl</b></div>
+    </div>`;
+
+  const cols = ['Yıl','Gelir (nom.)','OPEX (nom.)','Net Kâr','Taksit','Serbest Nakit','Reel S.Nakit*','Kümülatif (nom.)','Not'];
+  const thead = document.getElementById('yearlyHead');
+  thead.innerHTML = `<tr>${cols.map(c =>
+    `<th style="padding:10px 8px;text-align:right;color:var(--text3);font-size:10px;border-bottom:2px solid var(--border2);white-space:nowrap;font-weight:500;letter-spacing:0.08em;text-transform:uppercase">${c}</th>`
+  ).join('')}</tr>`;
+
+  const tbody2 = document.getElementById('yearlyBody');
+  tbody2.innerHTML = d.years.map((y, i) => {
+    const isY0 = i === 0;
+    const kumColor   = y.kumulatif >= 0 ? '#22c97a' : '#f04040';
+    const freeColor  = !isY0 ? (y.freeCash >= 0 ? '#22c97a' : '#f04040') : '#556070';
+    const realColor  = !isY0 ? (y.realFreeCash >= 0 ? '#7bc8f6' : '#f08080') : '#556070';
+    const rowBg = (i % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent');
+    const inflNote = !isY0 && i > 1 ? `<span style="color:#556070;font-size:9px"> ×${y.revFactor.toFixed(2)}</span>` : '';
+    const td = (val, color='#94a3b8', bold=false, extra='') =>
+      `<td style="padding:9px 8px;text-align:right;color:${color};${bold?'font-weight:600':''};font-variant-numeric:tabular-nums;">${val}${extra}</td>`;
+
+    if (isY0) {
+      return `<tr style="background:${rowBg};border-bottom:1px solid #141a1f">
+        ${td(y.yr,'#e8edf0',true)} ${td('—')} ${td('—')} ${td('—')} ${td('—')}
+        ${td('—')} ${td('—')}
+        ${td(fmtTL(y.kumulatif), kumColor, true)}
+        ${td(y.note||'','#556070')}
+      </tr>`;
+    }
+    return `<tr style="background:${rowBg};border-bottom:1px solid #141a1f">
+      ${td(y.yr,'#e8edf0',true)}
+      ${td(fmtTL(y.gelir),'#22c97a',false,inflNote)}
+      ${td(fmtTL(y.opex),'#f04040')}
+      ${td(fmtTL(y.net), y.net>=0?'#22c97a':'#f04040')}
+      ${td(fmtTL(y.taksit),'#f04040')}
+      ${td(fmtTL(y.freeCash), freeColor, true)}
+      ${td(fmtTL(y.realFreeCash), realColor)}
+      ${td(fmtTL(y.kumulatif), kumColor, true)}
+      ${td(y.note||'','#556070')}
+    </tr>`;
+  }).join('');
+
+  // ── REEL NOT
+  const realNote = document.getElementById('realNote');
+  if (realNote) realNote.innerHTML = 
+    `<span style="color:#7bc8f6">* Reel Serbest Nakit</span><span style="color:var(--text3)"> = Nominal / (1 + %${(g('inf_deflator'))})<sup>yıl</sup> — Y1 satın alma gücü cinsinden</span>`;
+}
+
+// ─── SCENARIOS ───────────────────────────────────────────────────────────
+function setScenario(s) {
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const scenarios = {
+    pessimistic: { p_yield: 42, r_tomatoPrice: 35, e_coalPriceTon: 10000, grant_amount: 30000000, zb_rate: 10, inf_rev: 25, inf_cost: 40 },
+    base:        { p_yield: 50, r_tomatoPrice: 45, e_coalPriceTon: 8500,  grant_amount: 30000000, zb_rate: 8,  inf_rev: 30, inf_cost: 35 },
+    optimistic:  { p_yield: 58, r_tomatoPrice: 55, e_coalPriceTon: 7000,  grant_amount: 30000000, zb_rate: 6,  inf_rev: 35, inf_cost: 30 },
+    noGrant:     { p_yield: 50, r_tomatoPrice: 45, e_coalPriceTon: 8500,  grant_amount: 0,         zb_rate: 8,  inf_rev: 30, inf_cost: 35 }
+  };
+
+  const sc = scenarios[s];
+  Object.entries(sc).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) setInputValue(el, val);
+  });
+  render();
+}
+
+// ─── LOCALSTORAGE: İSİMLE ÇOKLU KAYIT ─────────────────────────────────────
+const LS_KEY = 'sera_fizibilite_v30_unused';      // v2'de migration yok (v1'den ayrı)
+const SAVES_KEY = 'sera_fizibilite_saves_v2';     // v2 ayrı kayıt deposu (v1 ile karışmaz)
+
+function getSaves() {
+  try { return JSON.parse(localStorage.getItem(SAVES_KEY)) || {}; } catch (e) { return {}; }
+}
+function setSaves(obj) { localStorage.setItem(SAVES_KEY, JSON.stringify(obj)); }
+
+function getAllInputValues() {
+  const data = {};
+  document.querySelectorAll('input[id]').forEach(el => {
+    data[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  data._savedAt = new Date().toLocaleString('tr-TR');
+  return data;
+}
+
+// Eski tek kaydı (varsa) çoklu yapıya taşı — mevcut kayıt kaybolmaz
+function migrateOldSave() {
+  const old = localStorage.getItem(LS_KEY);
+  if (!old) return;
+  try {
+    const data = JSON.parse(old);
+    const saves = getSaves();
+    const exists = Object.values(saves).some(s => s._savedAt && s._savedAt === data._savedAt);
+    if (!exists) {
+      const name = 'Önceki kayıt' + (data._savedAt ? ` (${data._savedAt})` : '');
+      saves[name] = data;
+      setSaves(saves);
+    }
+    // Not: eski kaydı SİLMİYORUZ — güvenlik için sera_fizibilite_v30 yerinde kalır
+  } catch (e) { /* parse hatası: eski kaydı SİLME, olduğu gibi bırak */ }
+}
+
+function refreshSavedDropdown(selectName) {
+  const sel = document.getElementById('savedSelect');
+  if (!sel) return;
+  const saves = getSaves();
+  const names = Object.keys(saves);
+  sel.innerHTML = names.length
+    ? '<option value="">— kayıt seç —</option>' + names.map(n =>
+        `<option value="${n.replace(/"/g, '&quot;')}">${n}</option>`).join('')
+    : '<option value="">(kayıt yok)</option>';
+  if (selectName && saves[selectName]) sel.value = selectName;
+}
+
+function applyData(data) {
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+  Object.entries(data).forEach(([id, val]) => {
+    if (id === '_savedAt') return;
+    const el = document.getElementById(id);
+    if (el) el.type === 'checkbox' ? el.checked = val : setInputValue(el, val);
+  });
+  render();
+}
+
+function saveScenario() {
+  const sel = document.getElementById('savedSelect');
+  const suggested = (sel && sel.value) ? sel.value : '';
+  const name = (prompt('Kayıt ismi:', suggested) || '').trim();
+  if (!name) return;
+  const saves = getSaves();
+  const overwrite = saves[name] && !confirm(`"${name}" zaten var. Üzerine yazılsın mı?`);
+  if (overwrite) return;
+  saves[name] = getAllInputValues();
+  setSaves(saves);
+  refreshSavedDropdown(name);
+
+  const btn = event.target;
+  const orig = btn.textContent;
+  btn.textContent = '✓ Kaydedildi';
+  btn.style.background = '#22c97a';
+  setTimeout(() => { btn.textContent = orig; btn.style.background = '#4a6cf7'; }, 1400);
+}
+
+function loadSelected() {
+  const sel = document.getElementById('savedSelect');
+  const name = sel ? sel.value : '';
+  if (!name) { alert('Önce listeden bir kayıt seç.'); return; }
+  const saves = getSaves();
+  if (!saves[name]) { alert('Kayıt bulunamadı.'); return; }
+  applyData(saves[name]);
+}
+
+function deleteSelected() {
+  const sel = document.getElementById('savedSelect');
+  const name = sel ? sel.value : '';
+  if (!name) { alert('Önce silinecek kaydı seç.'); return; }
+  if (!confirm(`"${name}" kaydı silinsin mi?`)) return;
+  const saves = getSaves();
+  delete saves[name];
+  setSaves(saves);
+  refreshSavedDropdown();
+}
+
+// Tüm kayıtları JSON dosyası olarak indir (kalıcı yedek — localStorage'a bağlı kalmaz)
+function exportSaves() {
+  const saves = getSaves();
+  if (Object.keys(saves).length === 0) { alert('Dışa aktarılacak kayıt yok.'); return; }
+  const blob = new Blob([JSON.stringify(saves, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sera-senaryolar.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(a.href);
+}
+
+// JSON dosyasından senaryo içe aktar (mevcutlarla birleştirir, üzerine yazar)
+function importSavesFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const incoming = JSON.parse(e.target.result);
+      if (typeof incoming !== 'object' || Array.isArray(incoming)) throw new Error('Beklenen format: {isim: {...}}');
+      const saves = getSaves();
+      let n = 0;
+      Object.entries(incoming).forEach(([name, data]) => {
+        if (data && typeof data === 'object') { saves[name] = data; n++; }
+      });
+      setSaves(saves);
+      refreshSavedDropdown();
+      alert(n + ' senaryo içe aktarıldı. Dropdown\'dan seçip "📂 Yükle" ile aç.');
+    } catch (err) { alert('Dosya okunamadı: ' + err.message); }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// Açılışta: eski kaydı taşı + dropdown'u doldur
+migrateOldSave();
+refreshSavedDropdown();
+
+// ─── EVENT LISTENERS ─────────────────────────────────────────────────────
+document.querySelectorAll('input').forEach(el => {
+  el.addEventListener('input', render);
+  if (el.classList.contains('grouped')) {
+    // odakta ham sayı (kolay düzenleme), çıkışta binlik ayraçlı format
+    el.addEventListener('focus', () => { el.value = el.value.replace(/\./g, ''); });
+    el.addEventListener('blur', () => { formatGroupedEl(el); });
+  }
+});
+
+// ─── INIT ────────────────────────────────────────────────────────────────
+document.querySelectorAll('input.grouped').forEach(formatGroupedEl); // açılışta düzgün format
+render();
+</script>
+</body>
+</html>
